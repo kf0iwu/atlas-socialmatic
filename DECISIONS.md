@@ -45,3 +45,10 @@
 -   Avoid unnecessary API calls
 -   Keep UI uncluttered
 -   Maintain extensibility
+
+## Design Philosophy Addendum (Sprint 3)
+
+-   UI (visual layer) must remain clean and uncluttered
+-   UX (workflow layer) takes priority when trade-offs arise
+-   Intelligence features (hooks / hashtags) must feel modular and non-intrusive
+-   Visual grouping should reflect logical separation of features
