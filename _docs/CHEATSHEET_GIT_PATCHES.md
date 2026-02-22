@@ -2,7 +2,7 @@
 
 ## Goal
 
-Generate a patch file to send to ChatGPT (or anyone else) that:
+Generate a patch file to send that:
 
 - Applies cleanly
 - Does not cause "patch does not apply"

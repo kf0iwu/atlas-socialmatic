@@ -472,7 +472,20 @@ export default function Home() {
 			if (!res.ok) throw new Error(data?.error ?? "Intel request failed");
 
 			if (data?.meta) {
-				setMeta((prev) => ({ ...(prev ?? {}), ...(data.meta as Meta) }));
+				setMeta((prev) => {
+					const next = { ...(prev ?? {}) };
+					const incoming = data.meta as Partial<Meta>;
+
+					if (incoming.linkedin_hooks !== undefined) {
+						next.linkedin_hooks = incoming.linkedin_hooks;
+					}
+
+					if (incoming.hashtag_packs !== undefined) {
+						next.hashtag_packs = incoming.hashtag_packs;
+					}
+
+					return next;
+				});
 			} else if (data?.raw) {
 				setError(String(data.raw));
 			} else {
@@ -747,7 +760,7 @@ export default function Home() {
 											className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
 											type="button"
 											onClick={() => runIntel({ hooksOnly: true })}
-											disabled={intelBusy || topic.trim().length < 3}
+											disabled={intelBusy || !enableHooks || topic.trim().length < 3}
 										>
 											{intelBusy ? "Working..." : "Regenerate hooks"}
 										</button>
@@ -771,7 +784,7 @@ export default function Home() {
 											className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
 											type="button"
 											onClick={() => runIntel({ hashtagsOnly: true })}
-											disabled={intelBusy || topic.trim().length < 3}
+											disabled={intelBusy || !enableHashtags || topic.trim().length < 3}
 										>
 											{intelBusy ? "Working..." : "Regenerate hashtags"}
 										</button>
