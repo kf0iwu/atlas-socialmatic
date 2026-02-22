@@ -20,6 +20,20 @@ import { useEffect, useMemo, useState } from "react";
  * ========================= */
 
 type LengthTier = "short" | "medium" | "long";
+
+type HashtagSize = "small" | "medium" | "large";
+
+type HashtagPack = {
+  broad: string[];
+  niche: string[];
+  longtail: string[];
+};
+
+type Meta = {
+  linkedin_hooks?: string[];
+  hashtag_packs?: Partial<Record<"instagram" | "linkedin", HashtagPack>>;
+};
+
 type Platform = "linkedin" | "x" | "instagram" | "threads" | "blog";
 
 type Posts = Partial<
@@ -261,6 +275,18 @@ export default function Home() {
   useEffect(() => {
     setHistory(loadHistory());
   }, []);
+  
+	// --- Intelligence (Sprint 3) ---
+	const [meta, setMeta] = useState<Meta | null>(null);
+
+	const [enableHooks, setEnableHooks] = useState(true);
+	const [hookCount, setHookCount] = useState(5);
+
+	const [enableHashtags, setEnableHashtags] = useState(false);
+	const [hashtagSize, setHashtagSize] = useState<HashtagSize>("medium");
+	const [hashtagPlatforms, setHashtagPlatforms] = useState<("instagram" | "linkedin")[]>(["instagram"]);
+
+	const [intelBusy, setIntelBusy] = useState(false);
 
   // --- HANDLERS ---
   // Small helper to keep platform ordering stable.
@@ -336,10 +362,16 @@ export default function Home() {
     }
   }
 
-  function generateAllSelected() {
-    setPosts(null);
-    callGenerate(platforms);
-  }
+	async function generateAllSelected() {
+		setPosts(null);
+		setMeta(null); // optional: clear old intel when starting fresh
+		await callGenerate(platforms);
+
+		// Only run intelligence if user enabled it
+		if ((enableHooks || enableHashtags) && topic.trim().length >= 3) {
+			await runIntel();
+		}
+	}
 
   function regenerateOne(p: Platform) {
     callGenerate([p]);
@@ -395,6 +427,58 @@ export default function Home() {
     saveHistory([]);
     setHistory([]);
   }
+	
+	// Sprint 3 hashtag toggle
+	function toggleHashtagPlatform(p: "instagram" | "linkedin") {
+		setHashtagPlatforms((prev) => {
+			const has = prev.includes(p);
+			const next = has ? prev.filter((x) => x !== p) : [...prev, p];
+			return next.length ? next : ["instagram"]; // never allow empty
+		});
+	}
+	
+	//Sprint 3 intel caller
+	async function runIntel(opts?: { hooksOnly?: boolean; hashtagsOnly?: boolean }) {
+		setIntelBusy(true);
+		setError(null);
+
+		try {
+			const hooksOnly = !!opts?.hooksOnly;
+			const hashtagsOnly = !!opts?.hashtagsOnly;
+
+			const res = await fetch("/api/intel", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					topic,
+					audience,
+					tone,
+
+					generate_hooks: hooksOnly ? true : enableHooks,
+					hook_count: hookCount,
+
+					generate_hashtags: hashtagsOnly ? true : enableHashtags,
+					hashtag_size: hashtagSize,
+					hashtag_platforms: hashtagPlatforms,
+				}),
+			});
+
+			const data = await res.json();
+			if (!res.ok) throw new Error(data?.error ?? "Intel request failed");
+
+			if (data?.meta) {
+				setMeta((prev) => ({ ...(prev ?? {}), ...(data.meta as Meta) }));
+			} else if (data?.raw) {
+				setError(String(data.raw));
+			} else {
+				setError("No intel returned.");
+			}
+		} catch (e: any) {
+			setError(e?.message ?? String(e));
+		} finally {
+			setIntelBusy(false);
+		}
+	}
 
   /* =========================
    * Render
@@ -542,7 +626,86 @@ export default function Home() {
                 Social platforms return 3 variants; Blog returns a single markdown draft.
               </div>
             </div>
+						
+            {/* Sprint 3 - Intelligence Addons */}
+						<section className="border rounded-xl p-4 bg-white space-y-3">
+							<div className="font-medium">Intelligence Add-ons (optional)</div>
 
+							<div className="flex items-center justify-between border rounded-lg px-3 py-2">
+								<label className="flex items-center gap-2 text-sm">
+									<input
+										type="checkbox"
+										checked={enableHooks}
+										onChange={(e) => setEnableHooks(e.target.checked)}
+									/>
+									Generate LinkedIn hooks
+								</label>
+
+								<div className={cls("flex items-center gap-2", !enableHooks && "opacity-40")}>
+									<span className="text-xs text-slate-500">Count</span>
+									<select
+										className="border rounded px-2 py-1 text-sm"
+										value={hookCount}
+										onChange={(e) => setHookCount(Number(e.target.value))}
+									>
+										{[5, 7, 9].map((n) => (
+											<option key={n} value={n}>
+												{n}
+											</option>
+										))}
+									</select>
+								</div>
+							</div>
+
+							<div className="flex items-center justify-between border rounded-lg px-3 py-2">
+								<label className="flex items-center gap-2 text-sm">
+									<input
+										type="checkbox"
+										checked={enableHashtags}
+										onChange={(e) => setEnableHashtags(e.target.checked)}
+									/>
+									Generate hashtag packs
+								</label>
+
+								<div className={cls("flex items-center gap-2", !enableHashtags && "opacity-40")}>
+									<span className="text-xs text-slate-500">Volume</span>
+									<select
+										className="border rounded px-2 py-1 text-sm"
+										value={hashtagSize}
+										onChange={(e) => setHashtagSize(e.target.value as HashtagSize)}
+									>
+										<option value="small">Small</option>
+										<option value="medium">Medium</option>
+										<option value="large">Large</option>
+									</select>
+								</div>
+							</div>
+
+							<div className={cls("flex items-center gap-4 text-sm", !enableHashtags && "opacity-40")}>
+								<label className="flex items-center gap-2">
+									<input
+										type="checkbox"
+										checked={hashtagPlatforms.includes("instagram")}
+										onChange={() => toggleHashtagPlatform("instagram")}
+										disabled={!enableHashtags}
+									/>
+									Instagram
+								</label>
+								<label className="flex items-center gap-2">
+									<input
+										type="checkbox"
+										checked={hashtagPlatforms.includes("linkedin")}
+										onChange={() => toggleHashtagPlatform("linkedin")}
+										disabled={!enableHashtags}
+									/>
+									LinkedIn
+								</label>
+							</div>
+
+							<div className="text-xs text-slate-500">
+								These use extra API calls only if enabled. Hooks/hashtags can be regenerated independently.
+							</div>
+						</section>
             {/* Generate */}
             <div className="flex items-center gap-3">
               <button
@@ -567,8 +730,79 @@ export default function Home() {
               </div>
             )}
           </section>
+					
+					{/* Sprint 3 - Intelligence results */}
+					{meta && (
+						<div className="grid gap-4">
+							{meta.linkedin_hooks?.length ? (
+								<section className="border rounded-xl p-4 bg-white space-y-3">
+									<div className="flex items-center justify-between">
+										<h2 className="text-lg font-semibold">LinkedIn Hooks</h2>
+										<button
+											className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
+											type="button"
+											onClick={() => runIntel({ hooksOnly: true })}
+											disabled={intelBusy || topic.trim().length < 3}
+										>
+											{intelBusy ? "Working..." : "Regenerate hooks"}
+										</button>
+									</div>
+									<div className="space-y-2">
+										{meta.linkedin_hooks.map((h, i) => (
+											<div key={i} className="border rounded-lg p-3 bg-slate-50 flex items-start justify-between gap-3">
+												<div className="text-sm whitespace-pre-wrap">{h}</div>
+												<CopyButton text={h} />
+											</div>
+										))}
+									</div>
+								</section>
+							) : null}
 
-          {/* Outputs */}
+							{meta.hashtag_packs ? (
+								<section className="border rounded-xl p-4 bg-white space-y-3">
+									<div className="flex items-center justify-between">
+										<h2 className="text-lg font-semibold">Hashtag Packs</h2>
+										<button
+											className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
+											type="button"
+											onClick={() => runIntel({ hashtagsOnly: true })}
+											disabled={intelBusy || topic.trim().length < 3}
+										>
+											{intelBusy ? "Working..." : "Regenerate hashtags"}
+										</button>
+									</div>
+
+									{(["instagram", "linkedin"] as const).map((p) => {
+										const pack = meta.hashtag_packs?.[p];
+										if (!pack) return null;
+
+										const joined = [...pack.broad, ...pack.niche, ...pack.longtail].join(" ");
+
+										return (
+											<div key={p} className="border rounded-lg p-3 bg-slate-50 space-y-2">
+												<div className="flex items-center justify-between">
+													<div className="font-medium text-sm">{PLATFORM_LABELS[p as any]}</div>
+													<CopyButton text={joined} />
+												</div>
+
+												<div className="text-xs text-slate-600">
+													<b>Broad:</b> {pack.broad.join(" ")}
+												</div>
+												<div className="text-xs text-slate-600">
+													<b>Niche:</b> {pack.niche.join(" ")}
+												</div>
+												<div className="text-xs text-slate-600">
+													<b>Long-tail:</b> {pack.longtail.join(" ")}
+												</div>
+											</div>
+										);
+									})}
+								</section>
+							) : null}
+						</div>
+					)}
+
+          {/* Outputs - Existing Posts*/}
           {posts && (
             <div className="grid gap-4">
               <PlatformCard
