@@ -27,6 +27,7 @@ type HashtagPack = {
   broad: string[];
   niche: string[];
   longtail: string[];
+  mixed_line?: string; // Adding grouped + mixed line functionality (Sprint 3)
 };
 
 type Meta = {
@@ -446,6 +447,10 @@ export default function Home() {
 			const hooksOnly = !!opts?.hooksOnly;
 			const hashtagsOnly = !!opts?.hashtagsOnly;
 
+			// Make the "only" modes mutually exclusive + credit-safe
+			const generate_hooks = hooksOnly ? true : hashtagsOnly ? false : enableHooks;
+			const generate_hashtags = hashtagsOnly ? true : hooksOnly ? false : enableHashtags;
+
 			const res = await fetch("/api/intel", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -454,10 +459,10 @@ export default function Home() {
 					audience,
 					tone,
 
-					generate_hooks: hooksOnly ? true : enableHooks,
+					generate_hooks,
 					hook_count: hookCount,
 
-					generate_hashtags: hashtagsOnly ? true : enableHashtags,
+					generate_hashtags,
 					hashtag_size: hashtagSize,
 					hashtag_platforms: hashtagPlatforms,
 				}),
@@ -771,18 +776,25 @@ export default function Home() {
 											{intelBusy ? "Working..." : "Regenerate hashtags"}
 										</button>
 									</div>
-
+									
+									{/* Updated this block Sprint 3 */}
 									{(["instagram", "linkedin"] as const).map((p) => {
 										const pack = meta.hashtag_packs?.[p];
 										if (!pack) return null;
 
-										const joined = [...pack.broad, ...pack.niche, ...pack.longtail].join(" ");
+										const mixed = pack.mixed_line?.trim()
+											? pack.mixed_line.trim()
+											: [...pack.broad, ...pack.niche, ...pack.longtail].join(" ");
 
 										return (
 											<div key={p} className="border rounded-lg p-3 bg-slate-50 space-y-2">
 												<div className="flex items-center justify-between">
 													<div className="font-medium text-sm">{PLATFORM_LABELS[p as any]}</div>
-													<CopyButton text={joined} />
+													<CopyButton text={mixed} />
+												</div>
+
+												<div className="text-xs text-slate-600">
+													<b>Mixed line:</b> {mixed}
 												</div>
 
 												<div className="text-xs text-slate-600">
@@ -797,10 +809,6 @@ export default function Home() {
 											</div>
 										);
 									})}
-								</section>
-							) : null}
-						</div>
-					)}
 
           {/* Outputs - Existing Posts*/}
           {posts && (
