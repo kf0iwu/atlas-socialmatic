@@ -24,7 +24,8 @@ posts and blog drafts.
 -   Intelligence endpoint (`/api/intel`)
 -   LinkedIn hook generation (planned Sprint 3)
 -   Hashtag strategy packs (planned Sprint 3)
--   Local history (localStorage)
+- 	Local history (localStorage) — Sprint 2
+- 	SQLite-backed persistent draft history (Sprint 4)
 
 ## Architecture
 
@@ -34,6 +35,7 @@ posts and blog drafts.
     -   `/api/suggest-topics` → Topic ideas
     -   `/api/intel` → Hooks + hashtags (optional)
 -   Env-based configuration
+- 	SQLite persistence layer (Sprint 4)
 
 ## Design Philosophy
 
