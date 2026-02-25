@@ -86,3 +86,11 @@ Sprint 3 considered feature complete. Remaining polish items may be addressed in
 -   Export pipelines
 -   SQLite persistence
 -   Templates / presets
+
+## Sprint 4 — DB Schema (Issue #2)
+
+- Designed v1 schema for SQLite persistence:
+  - Drafts: UUID PK, unix-ms timestamps, snapshotted inputs, JSON per-platform outputs/hooks/hashtags, minimal meta w/ schema_version
+  - Settings: single-row defaults (platforms/tone/audience/length tier)
+- Key v1 principle: **history is stable** (loading a draft restores exact state; defaults only apply to new drafts)
+- Deferred for post-1.0: A/B variants, structured blog sections

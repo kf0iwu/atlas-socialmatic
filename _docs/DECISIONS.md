@@ -118,3 +118,60 @@ Future Consideration:
   - AGPL for community use
   - Commercial license for closed-source or enterprise deployments
 - License may be reconsidered prior to accepting external contributors
+
+## Decision: Draft + Settings schema approach (Sprint 4 / Issue #2)
+
+### Context
+Atlas-Socialmatic v1 is self-hosted, single-user, SQLite-backed, and should remain simple and extensible. Sprint 4 requires persistence, history UI, and CRUD without overengineering.
+
+### Decision
+1) **Drafts are single-state rows** (no snapshots/versions in v1).
+2) **Draft IDs use UUID v4 (TEXT PK)**:
+   - Avoids predictable IDs, reduces future friction for export/import, and prevents collisions if DBs are ever merged.
+3) **Timestamps are INTEGER unix milliseconds**:
+   - Stored as UTC instants; safe across DST/timezone changes; convert at display time.
+4) **Drafts snapshot resolved inputs** (`topic/audience/tone/length_tier/platforms`) on save:
+   - Prevents “history drift” when Settings defaults change later.
+   - Guarantees that loading a draft restores UI state and generation context reliably.
+5) **Generated artifacts are stored as JSON blobs keyed by platform ID**:
+   - `outputs` stores `{ text, format }` per platform.
+   - `hooks` and `hashtag_packs` stored per platform similarly.
+   - Missing key = not generated yet (supports partial generation without ambiguity).
+   - Avoids normalization in v1 because we do not need SQL-level querying into these structures yet.
+6) **Meta is a minimal JSON snapshot with `schema_version`**:
+   - Supports backward-compatible parsing as JSON shapes evolve (without guessing).
+   - Stores only what helps debugging/repro context (provider/model/toggles), not secrets or heavy telemetry.
+
+### Out of scope / explicitly not stored (v1)
+- API keys or any secrets
+- Raw prompts / templates
+- Full provider responses/logs, token/cost telemetry
+- Derived UI metrics (character counts) and transient UI state (busy flags)
+
+### Tradeoffs
+- JSON columns reduce schema churn and keep v1 simple, at the cost of deeper SQL querying capability (acceptable for v1).
+- Nullable DB columns for some inputs are allowed for migration flexibility, but app behavior snapshots resolved values to maintain stable history.
+
+### Deferred (post-1.0)
+- Multiple per-platform variants (A/B)
+- Structured blog sections (title/body/CTA) instead of only platform text blobs
+- Proper dark mode theming (tracked separately)
+
+## Decision: Settings default_platforms initialization (Sprint 4)
+
+### Context
+The Settings table stores default values for new drafts. We considered whether to initialize default_platforms with a predefined starter set (e.g., ["linkedin","x"]) at DB bootstrap.
+
+### Decision
+Initialize default_platforms to an empty array ([]) at database creation.
+
+The UI remains responsible for determining first-run default platform selections.
+
+### Rationale
+- Avoid hard-coding product opinion into the persistence layer.
+- Keep DB focused on state, not behavior.
+- Allow future changes to default platform behavior without requiring schema migrations.
+- Preserve flexibility for v2+ where default behavior may become more structured or feature-driven.
+
+### Future Consideration
+If default behavior becomes more product-defined (e.g., workflow presets, feature flags, opinionated starter templates), reconsider moving default definitions into DB bootstrap logic in a future major version (v2.0+).
