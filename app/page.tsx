@@ -78,6 +78,15 @@ type HistoryItem = {
   posts: Posts;
 };
 
+type DraftListItem = {  //Sprint 4 - Issue #6
+  id: string;
+  created_at: number;
+  updated_at: number;
+  topic: string;
+  platforms: Platform[];
+  preview: string;
+};
+
 const PLATFORM_LABELS: Record<Platform, string> = {
   linkedin: "LinkedIn",
   x: "X",
@@ -216,7 +225,7 @@ function uid() {
   return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-function loadHistory(): HistoryItem[] {
+/* function loadHistory(): HistoryItem[] {
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
     if (!raw) return [];
@@ -226,14 +235,14 @@ function loadHistory(): HistoryItem[] {
   } catch {
     return [];
   }
-}
+} *///Removed for Sprint 4 Issue #6
 
-function saveHistory(items: HistoryItem[]) {
+/* function saveHistory(items: HistoryItem[]) {
   localStorage.setItem(
     HISTORY_KEY,
     JSON.stringify(items.slice(0, HISTORY_LIMIT)),
   );
-}
+} *///Removed for Sprint 4 Issue #6
 
 function defaultLengths(): Record<string, LengthTier> {
   return {
@@ -275,8 +284,10 @@ export default function Home() {
   const [topicBusy, setTopicBusy] = useState(false);
   const [topicIdeas, setTopicIdeas] = useState<TopicIdea[] | null>(null);
 
-  // History
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  // History (DB-backed) - Sprint 4, Issue #6
+  const [history, setHistory] = useState<DraftListItem[]>([]);
+  const [historyBusy, setHistoryBusy] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(true);
 
   // Derived enable/disable conditions
@@ -287,8 +298,32 @@ export default function Home() {
 
   const canSuggestTopics = useMemo(() => focus.trim().length >= 5, [focus]);
 
+  // -- Sprint 4, Issue #6 --
   useEffect(() => {
-    setHistory(loadHistory());
+    let cancelled = false;
+
+    async function loadDbHistory() {
+      setHistoryBusy(true);
+      setHistoryError(null);
+
+      try {
+        const res = await fetch("/api/drafts", { method: "GET" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error ?? "Failed to load history");
+
+        const drafts = Array.isArray(data?.drafts) ? data.drafts : [];
+        if (!cancelled) setHistory(drafts as DraftListItem[]);
+      } catch (e: any) {
+        if (!cancelled) setHistoryError(e?.message ?? String(e));
+      } finally {
+        if (!cancelled) setHistoryBusy(false);
+      }
+    }
+
+    loadDbHistory();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // --- Intelligence (Sprint 3) ---
@@ -440,10 +475,10 @@ export default function Home() {
     setPosts(item.posts);
   }
 
-  function clearHistory() {
+/*   function clearHistory() {
     saveHistory([]);
     setHistory([]);
-  }
+  } *///Removed for Sprint 4 Issue #6
 
   // Sprint 3 hashtag toggle
   function toggleHashtagPlatform(p: "instagram" | "linkedin") {
@@ -950,19 +985,25 @@ export default function Home() {
             <div className="border rounded-xl bg-white p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="text-xs text-slate-500">
-                  Stored locally in this browser (max {HISTORY_LIMIT})
+                  Stored in SQLite (local) • newest first
                 </div>
                 <button
-                  className="text-xs border rounded px-2 py-1 hover:bg-slate-50"
-                  onClick={clearHistory}
+                  className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
                   type="button"
-                  disabled={history.length === 0}
+                  disabled={true}
+                  title="Clear/delete will be implemented with Draft delete UX (Issue #7)"
                 >
                   Clear
                 </button>
               </div>
 
-              {history.length === 0 ? (
+              {historyError ? (
+                <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">
+                  {historyError}
+                </div>
+              ) : historyBusy ? (
+                <div className="text-sm text-slate-600">Loading…</div>
+              ) : history.length === 0 ? (
                 <div className="text-sm text-slate-600">No history yet.</div>
               ) : (
                 <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
@@ -970,16 +1011,32 @@ export default function Home() {
                     <button
                       key={h.id}
                       className="w-full text-left border rounded-lg p-3 hover:bg-slate-50"
-                      onClick={() => loadFromHistory(h)}
+                      onClick={() => {
+                        // Issue #7 will load the full draft into the editor.
+                        // For now, just populate the topic as a lightweight affordance.
+                        setTopic(h.topic ?? "");
+                        console.log("Selected draft", h.id);
+                      }}
                       type="button"
+                      title={h.id}
                     >
                       <div className="text-sm font-medium line-clamp-2">
                         {h.topic || "(no topic)"}
                       </div>
+
                       <div className="text-xs text-slate-500 mt-1">
-                        {new Date(h.ts).toLocaleString()} •{" "}
-                        {h.platforms.map((p) => PLATFORM_LABELS[p]).join(", ")}
+                        {new Date(h.updated_at).toLocaleString()} •{" "}
+                        {(h.platforms ?? [])
+                          .map((p) => PLATFORM_LABELS[p])
+                          .filter(Boolean)
+                          .join(", ")}
                       </div>
+
+                      {h.preview ? (
+                        <div className="text-xs text-slate-600 mt-2 line-clamp-3">
+                          {h.preview}
+                        </div>
+                      ) : null}
                     </button>
                   ))}
                 </div>
