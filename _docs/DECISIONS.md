@@ -175,3 +175,8 @@ The UI remains responsible for determining first-run default platform selections
 
 ### Future Consideration
 If default behavior becomes more product-defined (e.g., workflow presets, feature flags, opinionated starter templates), reconsider moving default definitions into DB bootstrap logic in a future major version (v2.0+).
+
+## Deferred (v2): History layout refinement
+- In v1, keep History as a simple right-side panel for speed and minimal UI churn.
+- Consider a cleaner v2 layout (tabs/menu/section) once Draft load/edit/delete UX stabilizes.
+
