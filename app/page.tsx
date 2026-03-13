@@ -105,8 +105,6 @@ const ORDERED_PLATFORMS: Platform[] = [
 
 const DEFAULT_PLATFORMS: Platform[] = ["linkedin", "x", "instagram", "threads"];
 
-const HISTORY_KEY = "atlas_socialmatic_history_v2";
-const HISTORY_LIMIT = 20;
 
 /* =========================
  * 2) Small UI helpers
@@ -221,9 +219,6 @@ function PlatformCard({
  * 3) History helpers (localStorage)
  * ========================= */
 
-function uid() {
-  return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-}
 
 /* function loadHistory(): HistoryItem[] {
   try {
@@ -382,25 +377,28 @@ export default function Home() {
         // Merge results (so regen updates only one platform)
         setPosts((prev) => ({ ...(prev ?? {}), ...newPosts }));
 
-        // Save to history when generating multiple platforms at once
+        // Auto-save to DB and refresh history sidebar
         if (requested.length > 1) {
-          const item: HistoryItem = {
-            id: uid(),
-            ts: Date.now(),
-            topic,
-            audience,
-            tone,
-            focus,
-            platforms: requested,
-            lengths,
-            posts: newPosts,
-          };
-
-          setHistory((prev) => {
-            const next = [item, ...prev].slice(0, HISTORY_LIMIT);
-            saveHistory(next);
-            return next;
-          });
+          fetch("/api/drafts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic,
+              audience,
+              tone,
+              platforms: requested,
+              outputs: newPosts,
+              meta: { lengths },
+            }),
+          })
+            .then(() => fetch("/api/drafts"))
+            .then((r) => r.json())
+            .then((d) => {
+              if (Array.isArray(d?.drafts)) setHistory(d.drafts as DraftListItem[]);
+            })
+            .catch(() => {
+              // Non-fatal: generation succeeded; history will refresh on next load
+            });
         }
       } else if (data?.raw) {
         setError(String(data.raw));
@@ -557,6 +555,17 @@ export default function Home() {
       setError(e?.message ?? String(e));
     } finally {
       setIntelBusy(false);
+    }
+  }
+
+  async function deleteDraft(id: string) {
+    if (!window.confirm("Delete this draft?")) return;
+    try {
+      const res = await fetch(`/api/drafts/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+      setHistory((prev) => prev.filter((h) => h.id !== id));
+    } catch {
+      // Non-fatal; draft remains in sidebar until next reload
     }
   }
 
@@ -928,42 +937,42 @@ export default function Home() {
                   })}
                 </section>
               ) : null}
+            </div>
+          )}
 
-              {/* Outputs - Existing Posts*/}
-              {posts && (
-                <div className="grid gap-4">
-                  <PlatformCard
-                    platform="linkedin"
-                    title="LinkedIn"
-                    items={posts.linkedin}
-                    onRegenerate={() => regenerateOne("linkedin")}
-                  />
-                  <PlatformCard
-                    platform="x"
-                    title="X"
-                    items={posts.x}
-                    onRegenerate={() => regenerateOne("x")}
-                  />
-                  <PlatformCard
-                    platform="instagram"
-                    title="Instagram"
-                    items={posts.instagram}
-                    onRegenerate={() => regenerateOne("instagram")}
-                  />
-                  <PlatformCard
-                    platform="threads"
-                    title="Threads"
-                    items={posts.threads}
-                    onRegenerate={() => regenerateOne("threads")}
-                  />
-                  <PlatformCard
-                    platform="blog"
-                    title="Blog Post"
-                    blog={posts.blog}
-                    onRegenerate={() => regenerateOne("blog")}
-                  />
-                </div>
-              )}
+          {/* Issue #21 fix: post outputs render independently of intelligence state */}
+          {posts && (
+            <div className="grid gap-4">
+              <PlatformCard
+                platform="linkedin"
+                title="LinkedIn"
+                items={posts.linkedin}
+                onRegenerate={() => regenerateOne("linkedin")}
+              />
+              <PlatformCard
+                platform="x"
+                title="X"
+                items={posts.x}
+                onRegenerate={() => regenerateOne("x")}
+              />
+              <PlatformCard
+                platform="instagram"
+                title="Instagram"
+                items={posts.instagram}
+                onRegenerate={() => regenerateOne("instagram")}
+              />
+              <PlatformCard
+                platform="threads"
+                title="Threads"
+                items={posts.threads}
+                onRegenerate={() => regenerateOne("threads")}
+              />
+              <PlatformCard
+                platform="blog"
+                title="Blog Post"
+                blog={posts.blog}
+                onRegenerate={() => regenerateOne("blog")}
+              />
             </div>
           )}
         </div>
@@ -983,18 +992,8 @@ export default function Home() {
 
           {showHistory && (
             <div className="border rounded-xl bg-white p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-slate-500">
-                  Stored in SQLite (local) • newest first
-                </div>
-                <button
-                  className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
-                  type="button"
-                  disabled={true}
-                  title="Clear/delete will be implemented with Draft delete UX (Issue #7)"
-                >
-                  Clear
-                </button>
+              <div className="text-xs text-slate-500">
+                Stored in SQLite (local) • newest first
               </div>
 
               {historyError ? (
@@ -1008,36 +1007,46 @@ export default function Home() {
               ) : (
                 <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
                   {history.map((h) => (
-                    <button
-                      key={h.id}
-                      className="w-full text-left border rounded-lg p-3 hover:bg-slate-50"
-                      onClick={() => {
-                        // Issue #7 will load the full draft into the editor.
-                        // For now, just populate the topic as a lightweight affordance.
-                        setTopic(h.topic ?? "");
-                        console.log("Selected draft", h.id);
-                      }}
-                      type="button"
-                      title={h.id}
-                    >
-                      <div className="text-sm font-medium line-clamp-2">
-                        {h.topic || "(no topic)"}
-                      </div>
-
-                      <div className="text-xs text-slate-500 mt-1">
-                        {new Date(h.updated_at).toLocaleString()} •{" "}
-                        {(h.platforms ?? [])
-                          .map((p) => PLATFORM_LABELS[p])
-                          .filter(Boolean)
-                          .join(", ")}
-                      </div>
-
-                      {h.preview ? (
-                        <div className="text-xs text-slate-600 mt-2 line-clamp-3">
-                          {h.preview}
+                    <div key={h.id} className="flex flex-col gap-1">
+                      <button
+                        className="w-full text-left border rounded-lg p-3 hover:bg-slate-50"
+                        onClick={() => {
+                          // Issue #7 will load the full draft into the editor.
+                          // For now, just populate the topic as a lightweight affordance.
+                          setTopic(h.topic ?? "");
+                          console.log("Selected draft", h.id);
+                        }}
+                        type="button"
+                        title={h.id}
+                      >
+                        <div className="text-sm font-medium line-clamp-2">
+                          {h.topic || "(no topic)"}
                         </div>
-                      ) : null}
-                    </button>
+
+                        <div className="text-xs text-slate-500 mt-1">
+                          {new Date(h.updated_at).toLocaleString()} •{" "}
+                          {(h.platforms ?? [])
+                            .map((p) => PLATFORM_LABELS[p])
+                            .filter(Boolean)
+                            .join(", ")}
+                        </div>
+
+                        {h.preview ? (
+                          <div className="text-xs text-slate-600 mt-2 line-clamp-3">
+                            {h.preview}
+                          </div>
+                        ) : null}
+                      </button>
+                      <div className="flex justify-end">
+                        <button
+                          className="text-xs text-slate-400 hover:text-red-600 px-1 py-0.5"
+                          type="button"
+                          onClick={() => deleteDraft(h.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
