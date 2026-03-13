@@ -16,14 +16,17 @@ function safeJsonParse<T>(s: string | null): T | null {
 }
 
 function makePreview(outputsJson: string | null): string {
-  const outputs = safeJsonParse<Record<string, { text?: string }>>(outputsJson);
+  const outputs = safeJsonParse<Record<string, unknown>>(outputsJson);
   if (!outputs) return "";
-  const first = Object.values(outputs).find((v) => typeof v?.text === "string" && v.text.trim().length > 0);
-  if (!first?.text) return "";
-  return first.text
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, PREVIEW_LEN);
+  for (const v of Object.values(outputs)) {
+    if (typeof v === "string" && v.trim().length > 0) {
+      return v.replace(/\s+/g, " ").trim().slice(0, PREVIEW_LEN);
+    }
+    if (Array.isArray(v) && typeof v[0] === "string" && v[0].trim().length > 0) {
+      return v[0].replace(/\s+/g, " ").trim().slice(0, PREVIEW_LEN);
+    }
+  }
+  return "";
 }
 
 function isMeaningful(body: any): boolean {
