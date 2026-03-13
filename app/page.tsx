@@ -279,6 +279,11 @@ export default function Home() {
   const [topicBusy, setTopicBusy] = useState(false);
   const [topicIdeas, setTopicIdeas] = useState<TopicIdea[] | null>(null);
 
+  // --- Draft persistence tracking (Issue #23) ---
+// When a draft is auto-created during generation we store its ID here.
+// After intelligence runs we PATCH the same draft with hooks/hashtags.
+const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+
   // History (DB-backed) - Sprint 4, Issue #6
   const [history, setHistory] = useState<DraftListItem[]>([]);
   const [historyBusy, setHistoryBusy] = useState(false);
@@ -391,10 +396,20 @@ export default function Home() {
               meta: { lengths },
             }),
           })
-            .then(() => fetch("/api/drafts"))
             .then((r) => r.json())
             .then((d) => {
-              if (Array.isArray(d?.drafts)) setHistory(d.drafts as DraftListItem[]);
+              // Store the draft ID so intelligence results can update it later
+              if (d?.id) {
+                setCurrentDraftId(d.id);
+              }
+
+              return fetch("/api/drafts");
+            })
+            .then((r) => r.json())
+            .then((d) => {
+              if (Array.isArray(d?.drafts)) {
+                setHistory(d.drafts as DraftListItem[]);
+              }
             })
             .catch(() => {
               // Non-fatal: generation succeeded; history will refresh on next load
@@ -532,9 +547,10 @@ export default function Home() {
       if (!res.ok) throw new Error(data?.error ?? "Intel request failed");
 
       if (data?.meta) {
+        const incoming = data.meta as Partial<Meta>;
+
         setMeta((prev) => {
           const next = { ...(prev ?? {}) };
-          const incoming = data.meta as Partial<Meta>;
 
           if (incoming.linkedin_hooks !== undefined) {
             next.linkedin_hooks = incoming.linkedin_hooks;
@@ -546,6 +562,33 @@ export default function Home() {
 
           return next;
         });
+
+        // Issue #23: persist intelligence results back onto the existing draft
+        if (currentDraftId) {
+          fetch(`/api/drafts/${currentDraftId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic,
+              audience,
+              tone,
+              platforms,
+              outputs: posts ?? {},
+              hooks: incoming.linkedin_hooks ?? null,
+              hashtag_packs: incoming.hashtag_packs ?? null,
+              meta: {
+                lengths,
+                enableHooks,
+                hookCount,
+                enableHashtags,
+                hashtagSize,
+                hashtagPlatforms,
+              },
+            }),
+          }).catch(() => {
+            // Non-fatal: UI still shows intel results even if persistence fails
+          });
+        }
       } else if (data?.raw) {
         setError(String(data.raw));
       } else {
