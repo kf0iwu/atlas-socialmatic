@@ -569,6 +569,41 @@ export default function Home() {
     }
   }
 
+  async function loadDraft(id: string) {
+    if (
+      (posts !== null || topic.trim() !== "") &&
+      !window.confirm("Load this draft? Your current work will be replaced.")
+    ) return;
+
+    try {
+      const res = await fetch(`/api/drafts/${id}`);
+      if (!res.ok) throw new Error("Failed to load draft");
+      const { draft } = await res.json();
+      if (!draft) return;
+
+      setTopic(draft.topic ?? "");
+      setAudience(draft.audience ?? "");
+      setTone(draft.tone ?? "Friendly");
+      setPlatforms((draft.platforms as Platform[]) ?? DEFAULT_PLATFORMS);
+      setLengths({
+        ...defaultLengths(),
+        ...((draft.meta?.lengths as Record<string, LengthTier> | undefined) ?? {}),
+      });
+      setPosts((draft.outputs as Posts) ?? null);
+      setError(null);
+      setTopicIdeas(null);
+
+      const linkedin_hooks = Array.isArray(draft.hooks) ? draft.hooks : undefined;
+      const hashtag_packs =
+        draft.hashtag_packs && typeof draft.hashtag_packs === "object"
+          ? draft.hashtag_packs
+          : undefined;
+      setMeta(linkedin_hooks || hashtag_packs ? { linkedin_hooks, hashtag_packs } : null);
+    } catch {
+      // Non-fatal; editor state unchanged on failure
+    }
+  }
+
   /* =========================
    * Render
    * ========================= */
@@ -1010,12 +1045,7 @@ export default function Home() {
                     <div key={h.id} className="flex flex-col gap-1">
                       <button
                         className="w-full text-left border rounded-lg p-3 hover:bg-slate-50"
-                        onClick={() => {
-                          // Issue #7 will load the full draft into the editor.
-                          // For now, just populate the topic as a lightweight affordance.
-                          setTopic(h.topic ?? "");
-                          console.log("Selected draft", h.id);
-                        }}
+                        onClick={() => loadDraft(h.id)}
                         type="button"
                         title={h.id}
                       >
