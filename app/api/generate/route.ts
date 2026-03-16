@@ -125,18 +125,27 @@ x:
 - medium: <= 220 chars
 - long: <= 280 chars
 - no hashtag pile
+- Variant 1: declarative statement or bold claim; no question mark
+- Variant 2: concrete tip or specific example; may use a short list or "X / Y / Z" format if chars allow
+- Variant 3: open with a question or counterintuitive framing; end with an implication, not another question
 - return an array of 3 variants
 
 instagram:
 - short: 1–2 short paragraphs + 5–8 hashtags at end
 - medium: 2–3 paragraphs + 8–12 hashtags at end
 - long: 4–6 paragraphs + 10–15 hashtags at end
+- Variant 1: insight-led — open with the observation, build toward a takeaway, close with a soft CTA or implication
+- Variant 2: tip-led — open with the actionable advice, support with context, close with an invitation to act or share
+- Variant 3: question-led — open with a provocative question, answer it through the caption, close with a follow-up question
 - return an array of 3 variants
 
 threads:
 - short: 2–4 sentences + question
 - medium: 5–8 sentences + question
 - long: 9–14 sentences + question
+- Variant 1: open with a sharp observation; build context sentence by sentence; close with a question about implications
+- Variant 2: open with the practical point; use plain, direct language throughout; close with a question that invites others to share experience
+- Variant 3: open with a question or counter-take; answer it through the post; close with a different open-ended question
 - return an array of 3 variants
 
 blog:
@@ -150,7 +159,9 @@ Variant diversity (linkedin, x, instagram, threads):
 - Variant 1: lead with an insight or strong opinion about the topic
 - Variant 2: lead with a practical takeaway or concrete tip
 - Variant 3: lead with a reflective question or observation
-- Each variant must approach the topic from a meaningfully different angle — do not produce three versions of the same post with minor wording changes
+- Variants must differ in three dimensions: opening style, body structure, and closing CTA — changing only the opening line is not sufficient
+- Variant 1 closes with an implication or consequence; Variant 2 closes with an action or challenge to the reader; Variant 3 closes with an open question
+- Do not produce three versions of the same post with minor wording changes
 
 Writing quality (linkedin, x, instagram, threads):
 - Write in an observer voice, not first-person — avoid "I", "my", "we"; frame insights as industry patterns, common scenarios, or practitioner observations
