@@ -391,7 +391,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
   // Calls your existing generator endpoint.
   // If requested.length > 1, we also snapshot the result into history.
-  async function callGenerate(requested: Platform[]): Promise<Posts | null> {
+  async function callGenerate(requested: Platform[], merge = true): Promise<Posts | null> {
     setBusy(true);
     setError(null);
 
@@ -415,7 +415,11 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
         const newPosts = data.posts as Posts;
 
         // Merge results (so regen updates only one platform)
-        setPosts((prev) => ({ ...(prev ?? {}), ...newPosts }));
+        if (merge) {
+          setPosts((prev) => ({ ...(prev ?? {}), ...newPosts }));
+        } else {
+          setPosts(newPosts);
+        }
         return newPosts;
       } else if (data?.raw) {
         setError(String(data.raw));
@@ -434,7 +438,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
     setCurrentDraftId(null);
     setPosts(null);
     setMeta(null);
-    const newPosts = await callGenerate(platforms);
+    const newPosts = await callGenerate(platforms, false);
     if (!newPosts) return;
 
     let intelData: Partial<Meta> | null = null;
