@@ -110,6 +110,7 @@ linkedin:
 - return an array of 3 variants
 - Ensure the post fully develops the idea before concluding.
 - Long posts should include explanation, example, or supporting reasoning.
+- The first line must be a short, punchy hook (ideally under 12 words) that makes the reader curious to continue
 
 x:
 - short: <= 140 chars
