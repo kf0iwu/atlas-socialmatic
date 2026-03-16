@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 import { callResponsesApi } from "@/lib/llm/provider";
-import { tryAcquire, release } from "@/lib/llm/rateLimit";
+import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
 type LengthTier = "short" | "medium" | "long";
@@ -63,10 +63,10 @@ function normalizeTier(x: any): LengthTier {
 }
 
 export async function POST(req: Request) {
-  if (!tryAcquire()) {
-    return NextResponse.json({ error: "Server busy, try again shortly" }, { status: 429 });
-  }
+  let acquired = false;
   try {
+    acquireOrThrow(req);
+    acquired = true;
     const body = (await req.json()) as ReqBody;
 
     if (!body.topic || body.topic.trim().length < 3) {
@@ -199,12 +199,23 @@ Important:
     } catch {
       return NextResponse.json({ ok: true, raw: outputText });
     }
-  } catch (e: any) {
+  } catch (error: any) {
+    if (isRateLimitError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: error.code === "RATE_LIMIT" ? 429 : 503,
+          headers: error.retryAfterSeconds
+            ? { "Retry-After": String(error.retryAfterSeconds) }
+            : undefined,
+        }
+      );
+    }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(e?.message ?? e) },
+      { error: "Unhandled error", details: String(error?.message ?? error) },
       { status: 500 }
     );
   } finally {
-    release();
+    if (acquired) release();
   }
 }

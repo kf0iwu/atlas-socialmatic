@@ -147,9 +147,17 @@ Planned:
 - Improve LinkedIn post formatting and structure
 - Strengthen prompt tuning for stronger hooks and variant diversity
 
-### UX
-- Dark mode theme
-
 ### Reliability
 - API rate-limit guard
 - Retry logic for failed LLM calls
+- Backend now filters LLM output to the requested platforms in `/api/generate` to prevent extra platform keys returned by the model from rendering unintended content.
+
+## Sprint 6 — UI/UX Polish
+
+Objective:
+UI/UX polish pass before release planning completes.
+
+Notes:
+- Sprint 6 is reserved for UI/UX polish before release planning completes
+- Issue #15 (proper dark mode theme) is moved from Sprint 5 into Sprint 6
+- Additional UI/UX improvements will be brainstormed and prioritized after Sprint 5 is complete

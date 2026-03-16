@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { callResponsesApi } from "@/lib/llm/provider";
+import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
 type HashtagSize = "small" | "medium" | "large";
@@ -116,7 +117,10 @@ function buildSchema(opts: {
 }
 
 export async function POST(req: Request) {
+  let acquired = false;
   try {
+    acquireOrThrow(req);
+    acquired = true;
     const body = (await req.json()) as ReqBody;
 
     if (!body.topic || body.topic.trim().length < 3) {
@@ -273,10 +277,23 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true, ...parsed }, { status: 200 });
-  } catch (e: any) {
+  } catch (error: any) {
+    if (isRateLimitError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: error.code === "RATE_LIMIT" ? 429 : 503,
+          headers: error.retryAfterSeconds
+            ? { "Retry-After": String(error.retryAfterSeconds) }
+            : undefined,
+        }
+      );
+    }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(e?.message ?? e) },
+      { error: "Unhandled error", details: String(error?.message ?? error) },
       { status: 500 }
     );
+  } finally {
+    if (acquired) release();
   }
 }

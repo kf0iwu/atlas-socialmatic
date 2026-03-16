@@ -168,3 +168,24 @@ self-hosted deployment.
 Self-hosted version remains available.
 
 The goal of v3.0 is convenience, not feature gating.
+
+---
+
+# Future Enhancements
+
+### Multi-length Variant Generation
+
+Allow generation of the same post across multiple length tiers
+(short, medium, long) rather than generating three variants of
+the same length.
+
+Example behavior:
+
+Variant 1 → short
+Variant 2 → medium
+Variant 3 → long
+
+This allows users to quickly compare how a topic performs across
+different post lengths and platforms.
+
+This feature is intentionally deferred until after v1.0.

@@ -23,6 +23,8 @@
   - Footer link in UI
   - GitHub Sponsors
   - Optional external donation platform (e.g., Ko-fi)
+- Sprint 5 rate limiting uses a shared per-IP time-window limiter across all LLM endpoints (v1 simplicity and safety)
+- Existing concurrency guard remains in place alongside the time-window limiter
 
 ---
 
@@ -43,6 +45,7 @@
 ## Deferred / Tabled (v2+)
 
 - Split intelBusy state (if not fully resolved in v1 polish)
+- Per-endpoint rate limit tuning (e.g. different limits for generate / intel / suggest-topics)
 - X thread mode
 - Blog outline / section expansion mode
 - Draft version snapshots
@@ -180,3 +183,33 @@ If default behavior becomes more product-defined (e.g., workflow presets, featur
 - In v1, keep History as a simple right-side panel for speed and minimal UI churn.
 - Consider a cleaner v2 layout (tabs/menu/section) once Draft load/edit/delete UX stabilizes.
 
+## 2026-03-16 — Backend must not trust LLM output schema
+
+The generate API previously returned the LLM JSON output directly.
+
+Because LLMs sometimes ignore schema instructions and return extra keys,
+the backend now filters the parsed output so only the requested platforms
+are returned to the client.
+
+Implementation:
+- After parsing the LLM JSON response, the server filters keys to the
+  normalized `platforms` list from the request.
+- Any unexpected keys returned by the model are discarded.
+
+Reason:
+LLM outputs are non-deterministic and cannot be trusted to obey strict
+JSON schema instructions. The backend must enforce the requested contract.
+
+
+## 2026-03-16 — Length constraints require structural guidance
+
+LLMs do not reliably obey character limits alone because they do not track
+character counts during generation.
+
+Length tiers must include structural hints such as:
+- approximate word ranges
+- paragraph counts
+- sentence counts
+- structural templates
+
+These constraints significantly improve adherence to target content lengths.
