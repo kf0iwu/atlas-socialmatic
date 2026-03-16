@@ -108,6 +108,8 @@ linkedin:
 - Place 0–3 hashtags on their own line at the very end
 - Close with a CTA or question to invite engagement
 - return an array of 3 variants
+- Ensure the post fully develops the idea before concluding.
+- Long posts should include explanation, example, or supporting reasoning.
 
 x:
 - short: <= 140 chars
