@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { callResponsesApi } from "@/lib/llm/provider";
 import { NextResponse } from "next/server";
 
 type HashtagSize = "small" | "medium" | "large";
@@ -200,42 +201,33 @@ export async function POST(req: Request) {
 
     const schema = buildSchema({ generateHooks, generateHashtags, platforms });
 
-    const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
-    const resp = await fetch(`${baseUrl}/responses`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
-        store: false, // avoid default storage
-        temperature: 0.4,
-        input: [
-          {
-            role: "system",
-            content:
-              "You are Atlas-Socialmatic Intelligence. You generate strategic add-ons for social writing.",
-          },
-          {
-            role: "user",
-            content: [
-              `Topic: ${topic}`,
-              `Audience: ${audience}`,
-              `Tone: ${tone}`,
-              "",
-              instructions.join("\n\n"),
-            ].join("\n"),
-          },
-        ],
-        // Structured Outputs (Responses API uses text.format)
-        text: {
-          format: {
-            type: "json_schema",
-            ...schema,
-          },
+    const resp = await callResponsesApi(apiKey, {
+      store: false,
+      temperature: 0.4,
+      input: [
+        {
+          role: "system",
+          content:
+            "You are Atlas-Socialmatic Intelligence. You generate strategic add-ons for social writing.",
         },
-      }),
+        {
+          role: "user",
+          content: [
+            `Topic: ${topic}`,
+            `Audience: ${audience}`,
+            `Tone: ${tone}`,
+            "",
+            instructions.join("\n\n"),
+          ].join("\n"),
+        },
+      ],
+      // Structured Outputs (Responses API uses text.format)
+      text: {
+        format: {
+          type: "json_schema",
+          ...schema,
+        },
+      },
     });
 
     if (!resp.ok) {

@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { callResponsesApi } from "@/lib/llm/provider";
 import { NextResponse } from "next/server";
 
 type ReqBody = {
@@ -71,18 +72,7 @@ Rules:
 - No code fences. No extra keys.
 `.trim();
 
-    const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
-    const resp = await fetch(`${baseUrl}/responses`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
-        input: prompt,
-      }),
-    });
+    const resp = await callResponsesApi(apiKey, { input: prompt });
 
     if (!resp.ok) {
       const errText = await resp.text();
