@@ -87,6 +87,8 @@ type DraftListItem = {  //Sprint 4 - Issue #6
   preview: string;
 };
 
+type Toast = { id: number; message: string; kind: "success" | "error" };
+
 const PLATFORM_LABELS: Record<Platform, string> = {
   linkedin: "LinkedIn",
   x: "X",
@@ -365,6 +367,14 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
   const [intelBusy, setIntelBusy] = useState(false);
 
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  function addToast(message: string, kind: Toast["kind"] = "success") {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, kind }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
+  }
+
   // --- HANDLERS ---
   // Small helper to keep platform ordering stable.
   function togglePlatform(p: Platform) {
@@ -450,6 +460,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
         .then((r) => r.json())
         .then((d) => {
           if (d?.draft?.id) setCurrentDraftId(d.draft.id);
+          addToast("Draft saved");
           return fetch("/api/drafts");
         })
         .then((r) => r.json())
@@ -586,6 +597,12 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
         intelResult = incoming;
 
+        const didHooks = incoming.linkedin_hooks !== undefined;
+        const didHashtags = incoming.hashtag_packs !== undefined;
+        if (didHooks && didHashtags) addToast("Hooks and hashtags generated");
+        else if (didHooks) addToast("Hooks generated");
+        else if (didHashtags) addToast("Hashtag packs generated");
+
         // Issue #23: persist intelligence results back onto the existing draft
         if (currentDraftId) {
           fetch(`/api/drafts/${currentDraftId}`, {
@@ -631,8 +648,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
       const res = await fetch(`/api/drafts/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       setHistory((prev) => prev.filter((h) => h.id !== id));
+      addToast("Draft deleted");
     } catch {
-      // Non-fatal; draft remains in sidebar until next reload
+      addToast("Failed to delete draft", "error");
     }
   }
 
@@ -686,8 +704,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           ? draft.hashtag_packs
           : undefined;
       setMeta(linkedin_hooks || hashtag_packs ? { linkedin_hooks, hashtag_packs } : null);
+      addToast("Draft loaded");
     } catch {
-      // Non-fatal; editor state unchanged on failure
+      addToast("Failed to load draft", "error");
     }
   }
 
@@ -1176,6 +1195,21 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           )}
         </aside>
       </div>
+
+      {toasts.length > 0 && (
+        <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50 pointer-events-none">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={`text-sm px-4 py-2 rounded-lg shadow-lg text-white ${
+                t.kind === "error" ? "bg-red-600" : "bg-slate-800"
+              }`}
+            >
+              {t.message}
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
