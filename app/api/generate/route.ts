@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 import { callResponsesApi } from "@/lib/llm/provider";
+import { tryAcquire, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
 type LengthTier = "short" | "medium" | "long";
@@ -62,6 +63,9 @@ function normalizeTier(x: any): LengthTier {
 }
 
 export async function POST(req: Request) {
+  if (!tryAcquire()) {
+    return NextResponse.json({ error: "Server busy, try again shortly" }, { status: 429 });
+  }
   try {
     const body = (await req.json()) as ReqBody;
 
@@ -102,15 +106,17 @@ linkedin:
 - short: 300–600 characters total
 - medium: 700–1100 characters total (target ~900)
 - long: 1000–1500 characters total (target ~1200; avoid short posts)
-- Open with a strong hook: a bold claim, counterintuitive insight, or direct question (1–2 lines max)
-- Use short paragraphs of 1–3 sentences each, separated by blank lines — no dense walls of text
-- Use bullet points sparingly: at most one list per post, only where they genuinely add clarity
-- Place 0–3 hashtags on their own line at the very end
-- Close with a CTA or question to invite engagement
-- return an array of 3 variants
-- Ensure the post fully develops the idea before concluding.
-- Long posts should include explanation, example, or supporting reasoning.
+- Open with a strong hook: a bold claim, counterintuitive insight, direct question, or surprising observation (1–2 lines max)
 - The first line must be a short, punchy hook (ideally under 12 words) that makes the reader curious to continue
+- Focus the post on one clear insight rather than summarizing the topic broadly
+- Use short paragraphs of 1–3 sentences each, separated by blank lines — no dense walls of text
+- Long posts should fully develop the idea with explanation, example, lesson, or reasoning
+- Use bullet points sparingly: at most one list per post, only where they genuinely add clarity
+- Write in a professional but conversational tone; avoid corporate jargon and marketing language
+- End with a question that invites professionals to share experience, perspective, or challenges (avoid generic questions like “What do you think?”)
+- Place 0–3 relevant industry hashtags on their own line at the very end
+- Prefer specific professional hashtags over generic tags like #innovation, #leadership, or #growth
+- return an array of 3 variants
 
 x:
 - short: <= 140 chars
@@ -192,5 +198,7 @@ Important:
       { error: "Unhandled error", details: String(e?.message ?? e) },
       { status: 500 }
     );
+  } finally {
+    release();
   }
 }
