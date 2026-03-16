@@ -159,12 +159,14 @@ function PlatformCard({
   items,
   blog,
   onRegenerate,
+  regenerateBusy,
 }: {
   platform: Platform;
   title: string;
   items?: string[];
   blog?: string;
   onRegenerate: () => void;
+  regenerateBusy?: boolean;
 }) {
   const hasArray = !!items?.length;
   const hasBlog = typeof blog === "string" && blog.trim().length > 0;
@@ -175,9 +177,10 @@ function PlatformCard({
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{title}</h2>
         <button
-          className="text-xs border rounded px-2 py-1 hover:bg-slate-50"
+          className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
           onClick={onRegenerate}
           type="button"
+          disabled={regenerateBusy}
         >
           Regenerate
         </button>
@@ -925,10 +928,10 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               <button
                 className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
                 onClick={generateAllSelected}
-                disabled={busy || !canGenerate}
+                disabled={busy || intelBusy || !canGenerate}
                 type="button"
               >
-                {busy ? "Generating..." : "Generate Selected"}
+                {busy ? "Generating..." : intelBusy ? "Analyzing..." : "Generate Selected"}
               </button>
 
               {!canGenerate && (
@@ -1044,30 +1047,35 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 platform="linkedin"
                 title="LinkedIn"
                 items={posts.linkedin}
+                regenerateBusy={busy}
                 onRegenerate={() => regenerateOne("linkedin")}
               />
               <PlatformCard
                 platform="x"
                 title="X"
                 items={posts.x}
+                regenerateBusy={busy}
                 onRegenerate={() => regenerateOne("x")}
               />
               <PlatformCard
                 platform="instagram"
                 title="Instagram"
                 items={posts.instagram}
+                regenerateBusy={busy}
                 onRegenerate={() => regenerateOne("instagram")}
               />
               <PlatformCard
                 platform="threads"
                 title="Threads"
                 items={posts.threads}
+                regenerateBusy={busy}
                 onRegenerate={() => regenerateOne("threads")}
               />
               <PlatformCard
                 platform="blog"
                 title="Blog Post"
                 blog={posts.blog}
+                regenerateBusy={busy}
                 onRegenerate={() => regenerateOne("blog")}
               />
             </div>
