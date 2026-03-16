@@ -100,8 +100,8 @@ Rules by platform (apply the platform’s tier):
 
 linkedin:
 - short: 300–600 characters total
-- medium: 600–1000 characters total
-- long: 1000–1500 characters total
+- medium: 700–1100 characters total (target ~900)
+- long: 1000–1500 characters total (target ~1200; avoid short posts)
 - Open with a strong hook: a bold claim, counterintuitive insight, or direct question (1–2 lines max)
 - Use short paragraphs of 1–3 sentences each, separated by blank lines — no dense walls of text
 - Use bullet points sparingly: at most one list per post, only where they genuinely add clarity
@@ -134,6 +134,18 @@ blog:
 - long: ~2000–3500 words (6–10 sections)
 - use markdown with a title and headings
 - return a single string (not an array)
+
+Variant diversity (linkedin, x, instagram, threads):
+- Variant 1: lead with an insight or strong opinion about the topic
+- Variant 2: lead with a practical takeaway or concrete tip
+- Variant 3: lead with a reflective question or observation
+- Each variant must approach the topic from a meaningfully different angle — do not produce three versions of the same post with minor wording changes
+
+Writing quality (all platforms):
+- Never open with generic scene-setters: "In today's world", "Many organizations", "In today's fast-paced environment", or similar
+- Avoid hollow filler phrases: "leverage", "key to success", "game-changer", "seamlessly", "in the realm of"
+- Favour specific, concrete observations over vague advice
+- Strong openings: bold statement, counterintuitive claim, direct question, or a specific scenario
 
 Important:
 - For linkedin/x/instagram/threads: value must be an array of 3 strings.
