@@ -105,6 +105,14 @@ const ORDERED_PLATFORMS: Platform[] = [
 
 const DEFAULT_PLATFORMS: Platform[] = ["linkedin", "x", "instagram", "threads"];
 
+const PLATFORM_CHAR_LIMITS: Record<Platform, number | null> = {
+  linkedin:  3000,
+  x:          280,
+  instagram: 2200,
+  threads:    500,
+  blog:      null,
+};
+
 
 /* =========================
  * 2) Small UI helpers
@@ -188,20 +196,31 @@ function PlatformCard({
 
       {hasArray && (
         <div className="space-y-3">
-          {items!.map((txt, idx) => (
-            <div
-              key={idx}
-              className="border rounded-lg p-3 bg-slate-50 space-y-2"
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-slate-700">
-                  Variant {idx + 1}
+          {items!.map((txt, idx) => {
+            const limit = PLATFORM_CHAR_LIMITS[platform];
+            const count = txt.length;
+            return (
+              <div
+                key={idx}
+                className="border rounded-lg p-3 bg-slate-50 space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-slate-700">
+                    Variant {idx + 1}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {limit !== null && (
+                      <span className={`text-xs ${count > limit ? "text-red-600 font-medium" : "text-slate-400"}`}>
+                        {count} / {limit}
+                      </span>
+                    )}
+                    <CopyButton text={txt} />
+                  </div>
                 </div>
-                <CopyButton text={txt} />
+                <pre className="text-sm whitespace-pre-wrap font-sans">{txt}</pre>
               </div>
-              <pre className="text-sm whitespace-pre-wrap font-sans">{txt}</pre>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -209,7 +228,10 @@ function PlatformCard({
         <div className="border rounded-lg p-3 bg-slate-50 space-y-2">
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium text-slate-700">Blog Draft</div>
-            <CopyButton text={blog!} />
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">{blog!.length} chars</span>
+              <CopyButton text={blog!} />
+            </div>
           </div>
           <pre className="text-sm whitespace-pre-wrap font-sans">{blog}</pre>
         </div>
