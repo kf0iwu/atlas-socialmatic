@@ -156,3 +156,13 @@ Do not introduce:
 - Prefer simple functions over classes
 - Keep API handlers concise
 - Avoid premature optimization
+
+## Security Rules
+
+Claude must never read or display the following files:
+
+- `.env.local`
+- `.env`
+- any file containing API keys or secrets
+
+If environment variables are needed for analysis, assume they exist and do not open the file.
