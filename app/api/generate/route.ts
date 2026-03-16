@@ -136,7 +136,8 @@ Important:
 - No code fences. No extra keys.
 `.trim();
 
-    const resp = await fetch("https://api.openai.com/v1/responses", {
+    const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
+    const resp = await fetch(`${baseUrl}/responses`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

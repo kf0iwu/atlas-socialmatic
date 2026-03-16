@@ -200,14 +200,15 @@ export async function POST(req: Request) {
 
     const schema = buildSchema({ generateHooks, generateHashtags, platforms });
 
-    const resp = await fetch("https://api.openai.com/v1/responses", {
+    const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
+    const resp = await fetch(`${baseUrl}/responses`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+        model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
         store: false, // avoid default storage
         temperature: 0.4,
         input: [
