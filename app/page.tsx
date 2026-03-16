@@ -279,6 +279,11 @@ export default function Home() {
   const [topicBusy, setTopicBusy] = useState(false);
   const [topicIdeas, setTopicIdeas] = useState<TopicIdea[] | null>(null);
 
+  // --- Draft persistence tracking (Issue #23) ---
+// When a draft is auto-created during generation we store its ID here.
+// After intelligence runs we PATCH the same draft with hooks/hashtags.
+const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+
   // History (DB-backed) - Sprint 4, Issue #6
   const [history, setHistory] = useState<DraftListItem[]>([]);
   const [historyBusy, setHistoryBusy] = useState(false);
@@ -351,7 +356,7 @@ export default function Home() {
 
   // Calls your existing generator endpoint.
   // If requested.length > 1, we also snapshot the result into history.
-  async function callGenerate(requested: Platform[]) {
+  async function callGenerate(requested: Platform[]): Promise<Posts | null> {
     setBusy(true);
     setError(null);
 
@@ -376,30 +381,7 @@ export default function Home() {
 
         // Merge results (so regen updates only one platform)
         setPosts((prev) => ({ ...(prev ?? {}), ...newPosts }));
-
-        // Auto-save to DB and refresh history sidebar
-        if (requested.length > 1) {
-          fetch("/api/drafts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              topic,
-              audience,
-              tone,
-              platforms: requested,
-              outputs: newPosts,
-              meta: { lengths },
-            }),
-          })
-            .then(() => fetch("/api/drafts"))
-            .then((r) => r.json())
-            .then((d) => {
-              if (Array.isArray(d?.drafts)) setHistory(d.drafts as DraftListItem[]);
-            })
-            .catch(() => {
-              // Non-fatal: generation succeeded; history will refresh on next load
-            });
-        }
+        return newPosts;
       } else if (data?.raw) {
         setError(String(data.raw));
       } else {
@@ -410,16 +392,44 @@ export default function Home() {
     } finally {
       setBusy(false);
     }
+    return null;
   }
 
   async function generateAllSelected() {
+    setCurrentDraftId(null);
     setPosts(null);
-    setMeta(null); // optional: clear old intel when starting fresh
-    await callGenerate(platforms);
+    setMeta(null);
+    const newPosts = await callGenerate(platforms);
+    if (!newPosts) return;
 
-    // Only run intelligence if user enabled it
+    let intelData: Partial<Meta> | null = null;
     if ((enableHooks || enableHashtags) && topic.trim().length >= 3) {
-      await runIntel();
+      intelData = await runIntel();
+    }
+
+    if (platforms.length > 1) {
+      fetch("/api/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic,
+          audience,
+          tone,
+          platforms,
+          outputs: newPosts,
+          hooks: intelData?.linkedin_hooks ?? null,
+          hashtag_packs: intelData?.hashtag_packs ?? null,
+          meta: { lengths, enableHooks, hookCount, enableHashtags, hashtagSize, hashtagPlatforms },
+        }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.draft?.id) setCurrentDraftId(d.draft.id);
+          return fetch("/api/drafts");
+        })
+        .then((r) => r.json())
+        .then((d) => { if (Array.isArray(d?.drafts)) setHistory(d.drafts as DraftListItem[]); })
+        .catch(() => {});
     }
   }
 
@@ -491,9 +501,10 @@ export default function Home() {
   async function runIntel(opts?: {
     hooksOnly?: boolean;
     hashtagsOnly?: boolean;
-  }) {
+  }): Promise<Partial<Meta> | null> {
     setIntelBusy(true);
     setError(null);
+    let intelResult: Partial<Meta> | null = null;
 
     try {
       const hooksOnly = !!opts?.hooksOnly;
@@ -532,9 +543,10 @@ export default function Home() {
       if (!res.ok) throw new Error(data?.error ?? "Intel request failed");
 
       if (data?.meta) {
+        const incoming = data.meta as Partial<Meta>;
+
         setMeta((prev) => {
           const next = { ...(prev ?? {}) };
-          const incoming = data.meta as Partial<Meta>;
 
           if (incoming.linkedin_hooks !== undefined) {
             next.linkedin_hooks = incoming.linkedin_hooks;
@@ -546,6 +558,35 @@ export default function Home() {
 
           return next;
         });
+
+        intelResult = incoming;
+
+        // Issue #23: persist intelligence results back onto the existing draft
+        if (currentDraftId) {
+          fetch(`/api/drafts/${currentDraftId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              topic,
+              audience,
+              tone,
+              platforms,
+              outputs: posts ?? {},
+              hooks: incoming.linkedin_hooks ?? null,
+              hashtag_packs: incoming.hashtag_packs ?? null,
+              meta: {
+                lengths,
+                enableHooks,
+                hookCount,
+                enableHashtags,
+                hashtagSize,
+                hashtagPlatforms,
+              },
+            }),
+          }).catch(() => {
+            // Non-fatal: UI still shows intel results even if persistence fails
+          });
+        }
       } else if (data?.raw) {
         setError(String(data.raw));
       } else {
@@ -556,6 +597,7 @@ export default function Home() {
     } finally {
       setIntelBusy(false);
     }
+    return intelResult;
   }
 
   async function deleteDraft(id: string) {
@@ -592,6 +634,26 @@ export default function Home() {
       setPosts((draft.outputs as Posts) ?? null);
       setError(null);
       setTopicIdeas(null);
+
+      setEnableHooks(
+        typeof draft.meta?.enableHooks === "boolean" ? draft.meta.enableHooks : true,
+      );
+      setHookCount(
+        typeof draft.meta?.hookCount === "number" ? draft.meta.hookCount : 5,
+      );
+      setEnableHashtags(
+        typeof draft.meta?.enableHashtags === "boolean"
+          ? draft.meta.enableHashtags
+          : false,
+      );
+      setHashtagSize(
+        (draft.meta?.hashtagSize as HashtagSize | undefined) ?? "medium",
+      );
+      setHashtagPlatforms(
+        Array.isArray(draft.meta?.hashtagPlatforms)
+          ? draft.meta.hashtagPlatforms
+          : ["instagram"],
+      );
 
       const linkedin_hooks = Array.isArray(draft.hooks) ? draft.hooks : undefined;
       const hashtag_packs =
