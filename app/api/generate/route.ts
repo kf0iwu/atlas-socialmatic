@@ -194,7 +194,8 @@ Important:
 
     try {
       const parsed = JSON.parse(cleaned);
-      return NextResponse.json({ ok: true, posts: parsed });
+      const posts = Object.fromEntries(platforms.map((p) => [p, parsed[p]]).filter(([, v]) => v !== undefined));
+      return NextResponse.json({ ok: true, posts });
     } catch {
       return NextResponse.json({ ok: true, raw: outputText });
     }
