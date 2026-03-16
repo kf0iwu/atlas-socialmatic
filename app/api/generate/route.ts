@@ -99,10 +99,14 @@ ${platforms.join(", ")}
 Rules by platform (apply the platform’s tier):
 
 linkedin:
-- short: 80–140 words
-- medium: 140–240 words
-- long: 240–400 words
-- 0–3 hashtags max, end with a CTA
+- short: 300–600 characters total
+- medium: 600–1000 characters total
+- long: 1000–1500 characters total
+- Open with a strong hook: a bold claim, counterintuitive insight, or direct question (1–2 lines max)
+- Use short paragraphs of 1–3 sentences each, separated by blank lines — no dense walls of text
+- Use bullet points sparingly: at most one list per post, only where they genuinely add clarity
+- Place 0–3 hashtags on their own line at the very end
+- Close with a CTA or question to invite engagement
 - return an array of 3 variants
 
 x:
