@@ -305,6 +305,23 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(true);
 
+  // Theme toggle (Issue #39)
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("theme");
+    let dark: boolean;
+    if (stored === "dark") {
+      dark = true;
+    } else if (stored === "light") {
+      dark = false;
+    } else {
+      dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    setIsDark(dark);
+    document.documentElement.classList.toggle("dark", dark);
+  }, []);
+
   // Derived enable/disable conditions
   const canGenerate = useMemo(
     () => topic.trim().length >= 3 && platforms.length > 0,
@@ -372,6 +389,13 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
     const id = Date.now();
     setToasts((prev) => [...prev, { id, message, kind }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
+  }
+
+  function toggleDark() {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
   }
 
   // --- HANDLERS ---
@@ -709,7 +733,17 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
         {/* Main column */}
         <div className="space-y-6">
           <header className="space-y-2">
-            <h1 className="text-3xl font-bold dark:text-slate-50">Atlas-Socialmatic</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold dark:text-slate-50">Atlas-Socialmatic</h1>
+              <button
+                className="text-xs border rounded px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                onClick={toggleDark}
+                type="button"
+                aria-label="Toggle dark mode"
+              >
+                {isDark ? "☀ Light" : "☾ Dark"}
+              </button>
+            </div>
             <p className="text-slate-600 dark:text-slate-300">
               Generate platform-ready drafts, with topic suggestions,
               per-platform length, regeneration, and local history.
