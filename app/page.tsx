@@ -117,7 +117,7 @@ function CopyButton({ text }: { text: string }) {
 
   return (
     <button
-      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+      className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
       onClick={() => {
         navigator.clipboard.writeText(text);
         setCopied(true);
@@ -140,7 +140,7 @@ function LengthSelect({
 }) {
   return (
     <select
-      className="border rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+      className="border border-slate-300 rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
       value={value}
       onChange={(e) => onChange(e.target.value as LengthTier)}
     >
@@ -171,11 +171,11 @@ function PlatformCard({
   if (!hasArray && !hasBlog) return null;
 
   return (
-    <section className="border rounded-xl p-4 space-y-3 bg-white dark:bg-slate-900 dark:border-slate-700">
+    <section className="border border-slate-200 rounded-xl p-4 space-y-3 bg-white dark:bg-slate-900 dark:border-slate-700">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold dark:text-slate-100">{title}</h2>
         <button
-          className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+          className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
           onClick={onRegenerate}
           type="button"
           disabled={regenerateBusy}
@@ -192,7 +192,7 @@ function PlatformCard({
             return (
               <div
                 key={idx}
-                className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700"
+                className="border border-slate-200 rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700"
               >
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -215,7 +215,7 @@ function PlatformCard({
       )}
 
       {hasBlog && (
-        <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700">
+        <div className="border border-slate-200 rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium text-slate-700 dark:text-slate-200">Blog Draft</div>
             <div className="flex items-center gap-2">
@@ -728,7 +728,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
    * ========================= */
 
   return (
-    <main className="min-h-screen bg-slate-100 dark:bg-slate-950">
+    <main className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <div className="max-w-6xl mx-auto p-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* Main column */}
         <div className="space-y-6">
@@ -736,7 +736,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold dark:text-slate-50">Atlas-Socialmatic</h1>
               <button
-                className="text-xs border rounded px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
                 onClick={toggleDark}
                 type="button"
                 aria-label="Toggle dark mode"
@@ -751,19 +751,19 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           </header>
 
           {/* Inputs */}
-          <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-5 dark:border-slate-700">
+          <section className="border border-slate-200 rounded-xl p-4 bg-white dark:bg-slate-900 space-y-5 dark:border-slate-700">
             {/* Topic Suggestions */}
             <div className="space-y-1">
               <label className="font-medium dark:text-slate-100">Topic Focus / Domain</label>
               <input
-                className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                className="w-full border border-slate-300 rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 value={focus}
                 onChange={(e) => setFocus(e.target.value)}
                 placeholder="e.g., ISO 14971 medical device risk management consultancy"
               />
               <div className="flex items-center gap-3 pt-2">
                 <button
-                  className="text-sm border rounded px-3 py-2 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                  className="text-sm border border-slate-300 rounded px-3 py-2 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
                   onClick={suggestTopics}
                   disabled={topicBusy || !canSuggestTopics}
                   type="button"
@@ -777,13 +777,13 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
             </div>
 
             {topicIdeas && (
-              <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700">
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700">
                 <div className="font-medium dark:text-slate-100">Suggested Topics</div>
                 <div className="space-y-2">
                   {topicIdeas.map((t, idx) => (
                     <button
                       key={idx}
-                      className="w-full text-left border rounded-lg p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 dark:border-slate-700"
+                      className="w-full text-left border border-slate-200 rounded-lg p-3 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 dark:border-slate-700"
                       onClick={() => {
                         setTopic(t.topic);
                         // optional: clear list after picking
@@ -813,7 +813,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               <div className="space-y-1">
                 <label className="font-medium dark:text-slate-100">Topic</label>
                 <input
-                  className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="w-full border border-slate-300 rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g., Common ISO 14971 mistakes that create audit findings"
@@ -823,7 +823,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               <div className="space-y-1">
                 <label className="font-medium dark:text-slate-100">Audience</label>
                 <input
-                  className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="w-full border border-slate-300 rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   value={audience}
                   onChange={(e) => setAudience(e.target.value)}
                   placeholder="e.g., medical device QA/RA leaders"
@@ -833,7 +833,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               <div className="space-y-1">
                 <label className="font-medium dark:text-slate-100">Tone</label>
                 <select
-                  className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="w-full border border-slate-300 rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   value={tone}
                   onChange={(e) => setTone(e.target.value)}
                 >
@@ -855,7 +855,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     <div
                       key={p}
                       className={cls(
-                        "flex items-center justify-between gap-3 border rounded-lg px-3 py-2 dark:border-slate-700",
+                        "flex items-center justify-between gap-3 border border-slate-200 rounded-lg px-3 py-2 dark:border-slate-700",
                         checked ? "bg-slate-50 dark:bg-slate-800" : "bg-white dark:bg-slate-900",
                       )}
                     >
@@ -891,10 +891,13 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
             </div>
 
             {/* Sprint 3 - Intelligence Addons */}
-            <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
+            <section className="border border-slate-200 rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
               <div className="font-medium dark:text-slate-100">Intelligence Add-ons (optional)</div>
 
-              <div className="flex items-center justify-between border rounded-lg px-3 py-2 dark:border-slate-700">
+              <div className={cls(
+                "flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 dark:border-slate-700",
+                enableHooks ? "bg-slate-50 dark:bg-slate-800" : "bg-white dark:bg-slate-900",
+              )}>
                 <label className="flex items-center gap-2 text-sm dark:text-slate-200">
                   <input
                     type="checkbox"
@@ -912,7 +915,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 >
                   <span className="text-xs text-slate-500 dark:text-slate-400">Count</span>
                   <select
-                    className="border rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="border border-slate-300 rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     value={hookCount}
                     onChange={(e) => setHookCount(Number(e.target.value))}
                   >
@@ -925,7 +928,10 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border rounded-lg px-3 py-2 dark:border-slate-700">
+              <div className={cls(
+                "flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2 dark:border-slate-700",
+                enableHashtags ? "bg-slate-50 dark:bg-slate-800" : "bg-white dark:bg-slate-900",
+              )}>
                 <label className="flex items-center gap-2 text-sm dark:text-slate-200">
                   <input
                     type="checkbox"
@@ -943,7 +949,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 >
                   <span className="text-xs text-slate-500 dark:text-slate-400">Volume</span>
                   <select
-                    className="border rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="border border-slate-300 rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     value={hashtagSize}
                     onChange={(e) =>
                       setHashtagSize(e.target.value as HashtagSize)
@@ -990,7 +996,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
             {/* Generate */}
             <div className="flex items-center gap-3">
               <button
-                className="bg-black text-white dark:bg-white dark:text-black rounded px-4 py-2 disabled:opacity-50"
+                className="bg-slate-700 hover:bg-slate-600 text-white dark:bg-slate-200 dark:hover:bg-slate-100 dark:text-slate-900 rounded px-4 py-2 disabled:opacity-50"
                 onClick={generateAllSelected}
                 disabled={busy || intelBusy || !canGenerate}
                 type="button"
@@ -1026,11 +1032,11 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           {meta && (
             <div className="grid gap-4">
               {meta.linkedin_hooks?.length ? (
-                <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
+                <section className="border border-slate-200 rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold dark:text-slate-100">LinkedIn Hooks</h2>
                     <button
-                      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                      className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
                       type="button"
                       onClick={() => runIntel({ hooksOnly: true })}
                       disabled={
@@ -1044,7 +1050,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     {meta.linkedin_hooks.map((h, i) => (
                       <div
                         key={i}
-                        className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 dark:border-slate-700 flex items-start justify-between gap-3"
+                        className="border border-slate-200 rounded-lg p-3 bg-slate-50 dark:bg-slate-800 dark:border-slate-700 flex items-start justify-between gap-3"
                       >
                         <div className="text-sm whitespace-pre-wrap">{h}</div>
                         <CopyButton text={h} />
@@ -1055,11 +1061,11 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               ) : null}
 
               {meta.hashtag_packs ? (
-                <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
+                <section className="border border-slate-200 rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold dark:text-slate-100">Hashtag Packs</h2>
                     <button
-                      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                      className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
                       type="button"
                       onClick={() => runIntel({ hashtagsOnly: true })}
                       disabled={
@@ -1084,7 +1090,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     return (
                       <div
                         key={p}
-                        className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700"
+                        className="border border-slate-200 rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700"
                       >
                         <div className="flex items-center justify-between">
                           <div className="font-medium text-sm dark:text-slate-100">
@@ -1161,7 +1167,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold dark:text-slate-100">History</h2>
             <button
-              className="text-xs border rounded px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+              className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
               onClick={() => setShowHistory((v) => !v)}
               type="button"
             >
@@ -1170,7 +1176,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           </div>
 
           {showHistory && (
-            <div className="border rounded-xl bg-white dark:bg-slate-900 p-3 space-y-2 dark:border-slate-700">
+            <div className="border border-slate-200 rounded-xl bg-white dark:bg-slate-900 p-3 space-y-2 dark:border-slate-700">
               <div className="text-xs text-slate-500 dark:text-slate-400">
                 Stored in SQLite (local) • newest first
               </div>
@@ -1188,7 +1194,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                   {history.map((h) => (
                     <div key={h.id} className="flex flex-col gap-1">
                       <button
-                        className="w-full text-left border rounded-lg p-3 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                        className="w-full text-left border border-slate-200 rounded-lg p-3 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={() => loadDraft(h.id)}
                         type="button"
                         title={h.id}
