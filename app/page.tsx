@@ -66,18 +66,6 @@ type TopicIdea = {
   keywords?: string[];
 };
 
-type HistoryItem = {
-  id: string;
-  ts: number;
-  topic: string;
-  audience: string;
-  tone: string;
-  focus: string;
-  platforms: Platform[];
-  lengths: Record<string, LengthTier>;
-  posts: Posts;
-};
-
 type DraftListItem = {  //Sprint 4 - Issue #6
   id: string;
   created_at: number;
@@ -340,8 +328,8 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
         const drafts = Array.isArray(data?.drafts) ? data.drafts : [];
         if (!cancelled) setHistory(drafts as DraftListItem[]);
-      } catch (e: any) {
-        if (!cancelled) setHistoryError(e?.message ?? String(e));
+      } catch (e: unknown) {
+        if (!cancelled) setHistoryError(e instanceof Error ? e.message : String(e));
       } finally {
         if (!cancelled) setHistoryBusy(false);
       }
@@ -422,8 +410,8 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
       } else {
         setError("No structured output returned.");
       }
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -502,21 +490,11 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
       } else {
         setError("No topics returned.");
       }
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setTopicBusy(false);
     }
-  }
-
-  function loadFromHistory(item: HistoryItem) {
-    setTopic(item.topic);
-    setAudience(item.audience);
-    setTone(item.tone);
-    setFocus(item.focus ?? focus);
-    setPlatforms(item.platforms);
-    setLengths(item.lengths);
-    setPosts(item.posts);
   }
 
 /*   function clearHistory() {
@@ -634,8 +612,8 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
       } else {
         setError("No intel returned.");
       }
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIntelBusy(false);
     }
@@ -1055,7 +1033,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                       >
                         <div className="flex items-center justify-between">
                           <div className="font-medium text-sm">
-                            {PLATFORM_LABELS[p as any]}
+                            {PLATFORM_LABELS[p]}
                           </div>
                           <CopyButton text={mixed} />
                         </div>

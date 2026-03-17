@@ -12,30 +12,47 @@ function safeJsonParse<T>(s: string | null): T | null {
   }
 }
 
-function isMeaningful(body: any): boolean {
-  const topic = typeof body?.topic === "string" ? body.topic.trim() : "";
-  const platforms = Array.isArray(body?.platforms) ? body.platforms : [];
-  const outputs = body?.outputs && typeof body.outputs === "object" ? Object.keys(body.outputs).length : 0;
-  const hooks = body?.hooks && typeof body.hooks === "object" ? Object.keys(body.hooks).length : 0;
-  const packs = body?.hashtag_packs && typeof body.hashtag_packs === "object" ? Object.keys(body.hashtag_packs).length : 0;
+function isMeaningful(body: unknown): boolean {
+  const b = body as Record<string, unknown>;
+  const topic = typeof b.topic === "string" ? b.topic.trim() : "";
+  const platforms = Array.isArray(b.platforms) ? b.platforms : [];
+  const outputs = b.outputs && typeof b.outputs === "object" ? Object.keys(b.outputs as object).length : 0;
+  const hooks = b.hooks && typeof b.hooks === "object" ? Object.keys(b.hooks as object).length : 0;
+  const packs = b.hashtag_packs && typeof b.hashtag_packs === "object" ? Object.keys(b.hashtag_packs as object).length : 0;
 
   return topic.length > 0 || platforms.length > 0 || outputs > 0 || hooks > 0 || packs > 0;
 }
 
-function rowToDraft(row: any) {
+interface DraftRow {
+  id: string;
+  created_at: number;
+  updated_at: number;
+  topic: string;
+  audience: string | null;
+  tone: string | null;
+  length_tier: string | null;
+  platforms: string;
+  outputs: string | null;
+  hooks: string | null;
+  hashtag_packs: string | null;
+  meta: string | null;
+}
+
+function rowToDraft(row: unknown) {
+  const r = row as DraftRow;
   return {
-    id: row.id,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-    topic: row.topic,
-    audience: row.audience ?? null,
-    tone: row.tone ?? null,
-    length_tier: row.length_tier ?? null,
-    platforms: safeJsonParse<string[]>(row.platforms) ?? [],
-    outputs: safeJsonParse<any>(row.outputs),
-    hooks: safeJsonParse<any>(row.hooks),
-    hashtag_packs: safeJsonParse<any>(row.hashtag_packs),
-    meta: safeJsonParse<any>(row.meta),
+    id: r.id,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+    topic: r.topic,
+    audience: r.audience ?? null,
+    tone: r.tone ?? null,
+    length_tier: r.length_tier ?? null,
+    platforms: safeJsonParse<string[]>(r.platforms) ?? [],
+    outputs: safeJsonParse<unknown>(r.outputs),
+    hooks: safeJsonParse<unknown>(r.hooks),
+    hashtag_packs: safeJsonParse<unknown>(r.hashtag_packs),
+    meta: safeJsonParse<unknown>(r.meta),
   };
 }
 
@@ -57,14 +74,15 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
   const db = getDb();
   const { id } = await ctx.params;
 
-  let body: any;
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
 
-  const ifMatch = body?.if_match_updated_at;
+  const b = body as Record<string, unknown>;
+  const ifMatch = b.if_match_updated_at;
   if (typeof ifMatch !== "number") {
     return NextResponse.json({ error: "missing_if_match_updated_at" }, { status: 400 });
   }
@@ -88,18 +106,18 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
 
   const now = Date.now();
 
-  const topic = typeof body.topic === "string" ? body.topic : "";
-  const audience = typeof body.audience === "string" ? body.audience : null;
-  const tone = typeof body.tone === "string" ? body.tone : null;
-  const length_tier = typeof body.length_tier === "string" ? body.length_tier : null;
+  const topic = typeof b.topic === "string" ? b.topic : "";
+  const audience = typeof b.audience === "string" ? b.audience : null;
+  const tone = typeof b.tone === "string" ? b.tone : null;
+  const length_tier = typeof b.length_tier === "string" ? b.length_tier : null;
 
-  const platformsArr = Array.isArray(body.platforms) ? body.platforms : [];
+  const platformsArr = Array.isArray(b.platforms) ? b.platforms : [];
   const platforms = JSON.stringify(platformsArr);
 
-  const outputs = body.outputs ? JSON.stringify(body.outputs) : null;
-  const hooks = body.hooks ? JSON.stringify(body.hooks) : null;
-  const hashtag_packs = body.hashtag_packs ? JSON.stringify(body.hashtag_packs) : null;
-  const meta = body.meta ? JSON.stringify(body.meta) : null;
+  const outputs = b.outputs ? JSON.stringify(b.outputs) : null;
+  const hooks = b.hooks ? JSON.stringify(b.hooks) : null;
+  const hashtag_packs = b.hashtag_packs ? JSON.stringify(b.hashtag_packs) : null;
+  const meta = b.meta ? JSON.stringify(b.meta) : null;
 
   db.prepare(
     `UPDATE drafts SET

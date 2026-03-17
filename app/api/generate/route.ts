@@ -40,11 +40,11 @@ function stripCodeFences(s: string) {
     .trim();
 }
 
-function isPlatform(x: any): x is Platform {
+function isPlatform(x: unknown): x is Platform {
   return ["linkedin", "x", "instagram", "threads", "blog"].includes(String(x));
 }
 
-function normalizePlatforms(p?: any): Platform[] {
+function normalizePlatforms(p?: unknown): Platform[] {
   const fallback: Platform[] = ["linkedin", "x", "instagram", "threads"];
   if (!Array.isArray(p) || p.length === 0) return fallback;
 
@@ -56,7 +56,7 @@ function normalizePlatforms(p?: any): Platform[] {
   return order.filter((x) => cleaned.includes(x));
 }
 
-function normalizeTier(x: any): LengthTier {
+function normalizeTier(x: unknown): LengthTier {
   const v = String(x ?? "").toLowerCase();
   if (v === "short" || v === "medium" || v === "long") return v;
   return "medium";
@@ -195,8 +195,8 @@ Important:
       data.output_text ??
       (Array.isArray(data.output)
         ? data.output
-            .flatMap((o: any) => o?.content ?? [])
-            .map((c: any) => c?.text ?? "")
+            .flatMap((o: { content?: unknown[] }) => o?.content ?? [])
+            .map((c: { text?: string }) => c?.text ?? "")
             .join("")
         : "") ??
       "";
@@ -210,7 +210,7 @@ Important:
     } catch {
       return NextResponse.json({ ok: true, raw: outputText });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (isRateLimitError(error)) {
       return NextResponse.json(
         { error: error.message },
@@ -223,7 +223,7 @@ Important:
       );
     }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(error?.message ?? error) },
+      { error: "Unhandled error", details: String(error instanceof Error ? error.message : error) },
       { status: 500 }
     );
   } finally {
