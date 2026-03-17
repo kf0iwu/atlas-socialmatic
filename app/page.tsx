@@ -117,7 +117,7 @@ function CopyButton({ text }: { text: string }) {
 
   return (
     <button
-      className="text-xs border rounded px-2 py-1 hover:bg-slate-50"
+      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
       onClick={() => {
         navigator.clipboard.writeText(text);
         setCopied(true);
@@ -140,7 +140,7 @@ function LengthSelect({
 }) {
   return (
     <select
-      className="border rounded px-2 py-1 text-sm"
+      className="border rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
       value={value}
       onChange={(e) => onChange(e.target.value as LengthTier)}
     >
@@ -171,11 +171,11 @@ function PlatformCard({
   if (!hasArray && !hasBlog) return null;
 
   return (
-    <section className="border rounded-xl p-4 space-y-3 bg-white">
+    <section className="border rounded-xl p-4 space-y-3 bg-white dark:bg-slate-900 dark:border-slate-700">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="text-lg font-semibold dark:text-slate-100">{title}</h2>
         <button
-          className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
+          className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
           onClick={onRegenerate}
           type="button"
           disabled={regenerateBusy}
@@ -192,22 +192,22 @@ function PlatformCard({
             return (
               <div
                 key={idx}
-                className="border rounded-lg p-3 bg-slate-50 space-y-2"
+                className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700"
               >
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-slate-700">
+                  <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Variant {idx + 1}
                   </div>
                   <div className="flex items-center gap-2">
                     {limit !== null && (
-                      <span className={`text-xs ${count > limit ? "text-red-600 font-medium" : "text-slate-400"}`}>
+                      <span className={`text-xs ${count > limit ? "text-red-600 dark:text-red-400 font-medium" : "text-slate-400"}`}>
                         {count} / {limit}
                       </span>
                     )}
                     <CopyButton text={txt} />
                   </div>
                 </div>
-                <pre className="text-sm whitespace-pre-wrap font-sans">{txt}</pre>
+                <pre className="text-sm whitespace-pre-wrap font-sans dark:text-slate-100">{txt}</pre>
               </div>
             );
           })}
@@ -215,15 +215,15 @@ function PlatformCard({
       )}
 
       {hasBlog && (
-        <div className="border rounded-lg p-3 bg-slate-50 space-y-2">
+        <div className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium text-slate-700">Blog Draft</div>
+            <div className="text-sm font-medium text-slate-700 dark:text-slate-200">Blog Draft</div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400">{blog!.length} chars</span>
               <CopyButton text={blog!} />
             </div>
           </div>
-          <pre className="text-sm whitespace-pre-wrap font-sans">{blog}</pre>
+          <pre className="text-sm whitespace-pre-wrap font-sans dark:text-slate-100">{blog}</pre>
         </div>
       )}
     </section>
@@ -704,52 +704,52 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
    * ========================= */
 
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen bg-slate-100 dark:bg-slate-950">
       <div className="max-w-6xl mx-auto p-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         {/* Main column */}
         <div className="space-y-6">
           <header className="space-y-2">
-            <h1 className="text-3xl font-bold">Atlas-Socialmatic</h1>
-            <p className="text-slate-600">
+            <h1 className="text-3xl font-bold dark:text-slate-50">Atlas-Socialmatic</h1>
+            <p className="text-slate-600 dark:text-slate-300">
               Generate platform-ready drafts, with topic suggestions,
               per-platform length, regeneration, and local history.
             </p>
           </header>
 
           {/* Inputs */}
-          <section className="border rounded-xl p-4 bg-white space-y-5">
+          <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-5 dark:border-slate-700">
             {/* Topic Suggestions */}
             <div className="space-y-1">
-              <label className="font-medium">Topic Focus / Domain</label>
+              <label className="font-medium dark:text-slate-100">Topic Focus / Domain</label>
               <input
-                className="w-full border rounded px-3 py-2"
+                className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 value={focus}
                 onChange={(e) => setFocus(e.target.value)}
                 placeholder="e.g., ISO 14971 medical device risk management consultancy"
               />
               <div className="flex items-center gap-3 pt-2">
                 <button
-                  className="text-sm border rounded px-3 py-2 hover:bg-slate-50 disabled:opacity-50"
+                  className="text-sm border rounded px-3 py-2 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
                   onClick={suggestTopics}
                   disabled={topicBusy || !canSuggestTopics}
                   type="button"
                 >
                   {topicBusy ? "Suggesting..." : "Suggest Topics"}
                 </button>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   Click a suggestion below to populate the Topic field.
                 </span>
               </div>
             </div>
 
             {topicIdeas && (
-              <div className="border rounded-xl p-4 bg-slate-50 space-y-2">
-                <div className="font-medium">Suggested Topics</div>
+              <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700">
+                <div className="font-medium dark:text-slate-100">Suggested Topics</div>
                 <div className="space-y-2">
                   {topicIdeas.map((t, idx) => (
                     <button
                       key={idx}
-                      className="w-full text-left border rounded-lg p-3 bg-white hover:bg-slate-50"
+                      className="w-full text-left border rounded-lg p-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 dark:border-slate-700"
                       onClick={() => {
                         setTopic(t.topic);
                         // optional: clear list after picking
@@ -757,14 +757,14 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                       }}
                       type="button"
                     >
-                      <div className="text-sm font-semibold">{t.topic}</div>
+                      <div className="text-sm font-semibold dark:text-slate-100">{t.topic}</div>
                       {t.angle && (
-                        <div className="text-sm text-slate-700 mt-1">
+                        <div className="text-sm text-slate-700 dark:text-slate-200 mt-1">
                           {t.angle}
                         </div>
                       )}
                       {t.why && (
-                        <div className="text-xs text-slate-500 mt-1">
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                           {t.why}
                         </div>
                       )}
@@ -777,9 +777,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
             {/* Core inputs */}
             <div className="grid gap-3">
               <div className="space-y-1">
-                <label className="font-medium">Topic</label>
+                <label className="font-medium dark:text-slate-100">Topic</label>
                 <input
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g., Common ISO 14971 mistakes that create audit findings"
@@ -787,9 +787,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium">Audience</label>
+                <label className="font-medium dark:text-slate-100">Audience</label>
                 <input
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   value={audience}
                   onChange={(e) => setAudience(e.target.value)}
                   placeholder="e.g., medical device QA/RA leaders"
@@ -797,9 +797,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               </div>
 
               <div className="space-y-1">
-                <label className="font-medium">Tone</label>
+                <label className="font-medium dark:text-slate-100">Tone</label>
                 <select
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border rounded px-3 py-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   value={tone}
                   onChange={(e) => setTone(e.target.value)}
                 >
@@ -813,7 +813,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
             {/* Platform selection + per-platform length */}
             <div className="space-y-2">
-              <div className="font-medium">Platforms</div>
+              <div className="font-medium dark:text-slate-100">Platforms</div>
               <div className="grid gap-2 sm:grid-cols-2">
                 {ORDERED_PLATFORMS.map((p) => {
                   const checked = platforms.includes(p);
@@ -821,11 +821,11 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     <div
                       key={p}
                       className={cls(
-                        "flex items-center justify-between gap-3 border rounded-lg px-3 py-2",
-                        checked ? "bg-slate-50" : "bg-white",
+                        "flex items-center justify-between gap-3 border rounded-lg px-3 py-2 dark:border-slate-700",
+                        checked ? "bg-slate-50 dark:bg-slate-800" : "bg-white dark:bg-slate-900",
                       )}
                     >
-                      <label className="flex items-center gap-2 text-sm">
+                      <label className="flex items-center gap-2 text-sm dark:text-slate-200">
                         <input
                           type="checkbox"
                           checked={checked}
@@ -840,7 +840,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                           !checked && "opacity-40",
                         )}
                       >
-                        <span className="text-xs text-slate-500">Length</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Length</span>
                         <LengthSelect
                           value={lengths[p] ?? "medium"}
                           onChange={(v) => setPlatformLength(p, v)}
@@ -850,18 +850,18 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                   );
                 })}
               </div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
                 Social platforms return 3 variants; Blog returns a single
                 markdown draft.
               </div>
             </div>
 
             {/* Sprint 3 - Intelligence Addons */}
-            <section className="border rounded-xl p-4 bg-white space-y-3">
-              <div className="font-medium">Intelligence Add-ons (optional)</div>
+            <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
+              <div className="font-medium dark:text-slate-100">Intelligence Add-ons (optional)</div>
 
-              <div className="flex items-center justify-between border rounded-lg px-3 py-2">
-                <label className="flex items-center gap-2 text-sm">
+              <div className="flex items-center justify-between border rounded-lg px-3 py-2 dark:border-slate-700">
+                <label className="flex items-center gap-2 text-sm dark:text-slate-200">
                   <input
                     type="checkbox"
                     checked={enableHooks}
@@ -876,9 +876,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     !enableHooks && "opacity-40",
                   )}
                 >
-                  <span className="text-xs text-slate-500">Count</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Count</span>
                   <select
-                    className="border rounded px-2 py-1 text-sm"
+                    className="border rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     value={hookCount}
                     onChange={(e) => setHookCount(Number(e.target.value))}
                   >
@@ -891,8 +891,8 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border rounded-lg px-3 py-2">
-                <label className="flex items-center gap-2 text-sm">
+              <div className="flex items-center justify-between border rounded-lg px-3 py-2 dark:border-slate-700">
+                <label className="flex items-center gap-2 text-sm dark:text-slate-200">
                   <input
                     type="checkbox"
                     checked={enableHashtags}
@@ -907,9 +907,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     !enableHashtags && "opacity-40",
                   )}
                 >
-                  <span className="text-xs text-slate-500">Volume</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Volume</span>
                   <select
-                    className="border rounded px-2 py-1 text-sm"
+                    className="border rounded px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     value={hashtagSize}
                     onChange={(e) =>
                       setHashtagSize(e.target.value as HashtagSize)
@@ -924,7 +924,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
               <div
                 className={cls(
-                  "flex items-center gap-4 text-sm",
+                  "flex items-center gap-4 text-sm dark:text-slate-200",
                   !enableHashtags && "opacity-40",
                 )}
               >
@@ -948,7 +948,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 </label>
               </div>
 
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
                 These use extra API calls only if enabled. Hooks/hashtags can be
                 regenerated independently.
               </div>
@@ -956,7 +956,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
             {/* Generate */}
             <div className="flex items-center gap-3">
               <button
-                className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+                className="bg-black text-white dark:bg-white dark:text-black rounded px-4 py-2 disabled:opacity-50"
                 onClick={generateAllSelected}
                 disabled={busy || intelBusy || !canGenerate}
                 type="button"
@@ -965,7 +965,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               </button>
 
               {busy && (
-                <span className="flex items-center gap-2 text-sm text-slate-500">
+                <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                   <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -975,14 +975,14 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               )}
 
               {!canGenerate && (
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   Enter a topic and select at least one platform
                 </span>
               )}
             </div>
 
             {error && (
-              <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">
+              <div className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded p-3">
                 {error}
               </div>
             )}
@@ -992,11 +992,11 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           {meta && (
             <div className="grid gap-4">
               {meta.linkedin_hooks?.length ? (
-                <section className="border rounded-xl p-4 bg-white space-y-3">
+                <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">LinkedIn Hooks</h2>
+                    <h2 className="text-lg font-semibold dark:text-slate-100">LinkedIn Hooks</h2>
                     <button
-                      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
+                      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
                       type="button"
                       onClick={() => runIntel({ hooksOnly: true })}
                       disabled={
@@ -1010,7 +1010,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     {meta.linkedin_hooks.map((h, i) => (
                       <div
                         key={i}
-                        className="border rounded-lg p-3 bg-slate-50 flex items-start justify-between gap-3"
+                        className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 dark:border-slate-700 flex items-start justify-between gap-3"
                       >
                         <div className="text-sm whitespace-pre-wrap">{h}</div>
                         <CopyButton text={h} />
@@ -1021,11 +1021,11 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               ) : null}
 
               {meta.hashtag_packs ? (
-                <section className="border rounded-xl p-4 bg-white space-y-3">
+                <section className="border rounded-xl p-4 bg-white dark:bg-slate-900 space-y-3 dark:border-slate-700">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Hashtag Packs</h2>
+                    <h2 className="text-lg font-semibold dark:text-slate-100">Hashtag Packs</h2>
                     <button
-                      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50"
+                      className="text-xs border rounded px-2 py-1 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
                       type="button"
                       onClick={() => runIntel({ hashtagsOnly: true })}
                       disabled={
@@ -1050,26 +1050,26 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                     return (
                       <div
                         key={p}
-                        className="border rounded-lg p-3 bg-slate-50 space-y-2"
+                        className="border rounded-lg p-3 bg-slate-50 dark:bg-slate-800 space-y-2 dark:border-slate-700"
                       >
                         <div className="flex items-center justify-between">
-                          <div className="font-medium text-sm">
+                          <div className="font-medium text-sm dark:text-slate-100">
                             {PLATFORM_LABELS[p]}
                           </div>
                           <CopyButton text={mixed} />
                         </div>
 
-                        <div className="text-xs text-slate-600">
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
                           <b>Mixed line:</b> {mixed}
                         </div>
 
-                        <div className="text-xs text-slate-600">
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
                           <b>Broad:</b> {pack.broad.join(" ")}
                         </div>
-                        <div className="text-xs text-slate-600">
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
                           <b>Niche:</b> {pack.niche.join(" ")}
                         </div>
-                        <div className="text-xs text-slate-600">
+                        <div className="text-xs text-slate-600 dark:text-slate-300">
                           <b>Long-tail:</b> {pack.longtail.join(" ")}
                         </div>
                       </div>
@@ -1125,9 +1125,9 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
         {/* History sidebar */}
         <aside className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">History</h2>
+            <h2 className="text-lg font-semibold dark:text-slate-100">History</h2>
             <button
-              className="text-xs border rounded px-2 py-1 hover:bg-slate-50"
+              className="text-xs border rounded px-2 py-1 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
               onClick={() => setShowHistory((v) => !v)}
               type="button"
             >
@@ -1136,34 +1136,34 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
           </div>
 
           {showHistory && (
-            <div className="border rounded-xl bg-white p-3 space-y-2">
-              <div className="text-xs text-slate-500">
+            <div className="border rounded-xl bg-white dark:bg-slate-900 p-3 space-y-2 dark:border-slate-700">
+              <div className="text-xs text-slate-500 dark:text-slate-400">
                 Stored in SQLite (local) • newest first
               </div>
 
               {historyError ? (
-                <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-3">
+                <div className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded p-3">
                   {historyError}
                 </div>
               ) : historyBusy ? (
-                <div className="text-sm text-slate-600">Loading…</div>
+                <div className="text-sm text-slate-600 dark:text-slate-300">Loading…</div>
               ) : history.length === 0 ? (
-                <div className="text-sm text-slate-600">No history yet.</div>
+                <div className="text-sm text-slate-600 dark:text-slate-300">No history yet.</div>
               ) : (
                 <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
                   {history.map((h) => (
                     <div key={h.id} className="flex flex-col gap-1">
                       <button
-                        className="w-full text-left border rounded-lg p-3 hover:bg-slate-50"
+                        className="w-full text-left border rounded-lg p-3 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={() => loadDraft(h.id)}
                         type="button"
                         title={h.id}
                       >
-                        <div className="text-sm font-medium line-clamp-2">
+                        <div className="text-sm font-medium line-clamp-2 dark:text-slate-100">
                           {h.topic || "(no topic)"}
                         </div>
 
-                        <div className="text-xs text-slate-500 mt-1">
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                           {new Date(h.updated_at).toLocaleString()} •{" "}
                           {(h.platforms ?? [])
                             .map((p) => PLATFORM_LABELS[p])
@@ -1172,14 +1172,14 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                         </div>
 
                         {h.preview ? (
-                          <div className="text-xs text-slate-600 mt-2 line-clamp-3">
+                          <div className="text-xs text-slate-600 dark:text-slate-300 mt-2 line-clamp-3">
                             {h.preview}
                           </div>
                         ) : null}
                       </button>
                       <div className="flex justify-end">
                         <button
-                          className="text-xs text-slate-400 hover:text-red-600 px-1 py-0.5"
+                          className="text-xs text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 px-1 py-0.5"
                           type="button"
                           onClick={() => deleteDraft(h.id)}
                         >
