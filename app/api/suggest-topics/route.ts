@@ -88,8 +88,8 @@ Rules:
       data.output_text ??
       (Array.isArray(data.output)
         ? data.output
-            .flatMap((o: any) => o?.content ?? [])
-            .map((c: any) => c?.text ?? "")
+            .flatMap((o: { content?: unknown[] }) => o?.content ?? [])
+            .map((c: { text?: string }) => c?.text ?? "")
             .join("")
         : "") ??
       "";
@@ -102,7 +102,7 @@ Rules:
     } catch {
       return NextResponse.json({ ok: true, raw: outputText });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (isRateLimitError(error)) {
       return NextResponse.json(
         { error: error.message },
@@ -115,7 +115,7 @@ Rules:
       );
     }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(error?.message ?? error) },
+      { error: "Unhandled error", details: String(error instanceof Error ? error.message : error) },
       { status: 500 }
     );
   } finally {

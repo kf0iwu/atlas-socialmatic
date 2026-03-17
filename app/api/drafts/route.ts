@@ -29,12 +29,13 @@ function makePreview(outputsJson: string | null): string {
   return "";
 }
 
-function isMeaningful(body: any): boolean {
-  const topic = typeof body?.topic === "string" ? body.topic.trim() : "";
-  const platforms = Array.isArray(body?.platforms) ? body.platforms : [];
-  const outputs = body?.outputs && typeof body.outputs === "object" ? Object.keys(body.outputs).length : 0;
-  const hooks = body?.hooks && typeof body.hooks === "object" ? Object.keys(body.hooks).length : 0;
-  const packs = body?.hashtag_packs && typeof body.hashtag_packs === "object" ? Object.keys(body.hashtag_packs).length : 0;
+function isMeaningful(body: unknown): boolean {
+  const b = body as Record<string, unknown>;
+  const topic = typeof b.topic === "string" ? b.topic.trim() : "";
+  const platforms = Array.isArray(b.platforms) ? b.platforms : [];
+  const outputs = b.outputs && typeof b.outputs === "object" ? Object.keys(b.outputs as object).length : 0;
+  const hooks = b.hooks && typeof b.hooks === "object" ? Object.keys(b.hooks as object).length : 0;
+  const packs = b.hashtag_packs && typeof b.hashtag_packs === "object" ? Object.keys(b.hashtag_packs as object).length : 0;
 
   return topic.length > 0 || platforms.length > 0 || outputs > 0 || hooks > 0 || packs > 0;
 }
@@ -72,7 +73,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const db = getDb();
 
-  let body: any;
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
@@ -83,21 +84,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "empty_draft_not_allowed" }, { status: 400 });
   }
 
+  const b = body as Record<string, unknown>;
   const id = crypto.randomUUID();
   const now = Date.now();
 
-  const topic = typeof body.topic === "string" ? body.topic : "";
-  const audience = typeof body.audience === "string" ? body.audience : null;
-  const tone = typeof body.tone === "string" ? body.tone : null;
-  const length_tier = typeof body.length_tier === "string" ? body.length_tier : null;
+  const topic = typeof b.topic === "string" ? b.topic : "";
+  const audience = typeof b.audience === "string" ? b.audience : null;
+  const tone = typeof b.tone === "string" ? b.tone : null;
+  const length_tier = typeof b.length_tier === "string" ? b.length_tier : null;
 
-  const platformsArr = Array.isArray(body.platforms) ? body.platforms : [];
+  const platformsArr = Array.isArray(b.platforms) ? b.platforms : [];
   const platforms = JSON.stringify(platformsArr);
 
-  const outputs = body.outputs ? JSON.stringify(body.outputs) : null;
-  const hooks = body.hooks ? JSON.stringify(body.hooks) : null;
-  const hashtag_packs = body.hashtag_packs ? JSON.stringify(body.hashtag_packs) : null;
-  const meta = body.meta ? JSON.stringify(body.meta) : null;
+  const outputs = b.outputs ? JSON.stringify(b.outputs) : null;
+  const hooks = b.hooks ? JSON.stringify(b.hooks) : null;
+  const hashtag_packs = b.hashtag_packs ? JSON.stringify(b.hashtag_packs) : null;
+  const meta = b.meta ? JSON.stringify(b.meta) : null;
 
   db.prepare(
     `INSERT INTO drafts
@@ -128,10 +130,10 @@ export async function POST(req: Request) {
     tone,
     length_tier,
     platforms: platformsArr,
-    outputs: body.outputs ?? null,
-    hooks: body.hooks ?? null,
-    hashtag_packs: body.hashtag_packs ?? null,
-    meta: body.meta ?? null,
+    outputs: b.outputs ?? null,
+    hooks: b.hooks ?? null,
+    hashtag_packs: b.hashtag_packs ?? null,
+    meta: b.meta ?? null,
   };
 
   return NextResponse.json({ draft }, { status: 201 });

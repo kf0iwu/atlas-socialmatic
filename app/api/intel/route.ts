@@ -58,7 +58,7 @@ function buildSchema(opts: {
   generateHashtags: boolean;
   platforms: Platform[];
 }) {
-  const metaProps: Record<string, any> = {};
+  const metaProps: Record<string, unknown> = {};
 
   if (opts.generateHooks) {
     metaProps.linkedin_hooks = {
@@ -84,7 +84,7 @@ function buildSchema(opts: {
       additionalProperties: false,
     };
 
-    const hashtagPacksProps: Record<string, any> = {};
+    const hashtagPacksProps: Record<string, unknown> = {};
     for (const p of opts.platforms) hashtagPacksProps[p] = perPlatform;
 
     metaProps.hashtag_packs = {
@@ -115,6 +115,9 @@ function buildSchema(opts: {
     },
   };
 }
+
+type HashtagPackResult = { broad: string[]; niche: string[]; longtail: string[]; mixed_line?: string };
+type IntelParsed = { meta?: { hashtag_packs?: Record<string, HashtagPackResult> } };
 
 export async function POST(req: Request) {
   let acquired = false;
@@ -250,15 +253,15 @@ export async function POST(req: Request) {
       data.output_text ??
       (Array.isArray(data.output)
         ? data.output
-            .flatMap((o: any) => o?.content ?? [])
-            .map((c: any) => c?.text ?? c?.content ?? "")
+            .flatMap((o: { content?: unknown[] }) => o?.content ?? [])
+            .map((c: { text?: string; content?: string }) => c?.text ?? c?.content ?? "")
             .join("")
         : "") ??
       "";
 
-    let parsed: any;
+    let parsed: IntelParsed;
     try {
-      parsed = typeof outputText === "string" ? JSON.parse(outputText) : outputText;
+      parsed = (typeof outputText === "string" ? JSON.parse(outputText) : outputText) as IntelParsed;
     } catch {
       // If SDK/server ever returns already-parsed JSON or a non-JSON string,
       // return the raw payload to debug.
@@ -277,7 +280,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true, ...parsed }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (isRateLimitError(error)) {
       return NextResponse.json(
         { error: error.message },
@@ -290,7 +293,7 @@ export async function POST(req: Request) {
       );
     }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(error?.message ?? error) },
+      { error: "Unhandled error", details: String(error instanceof Error ? error.message : error) },
       { status: 500 }
     );
   } finally {

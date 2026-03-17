@@ -58,6 +58,12 @@
 - UI-based provider configuration
 - Advanced provider plugin system
 
+### Deferred UX (v2+)
+- History bulk-deletion UX (checkboxes, "delete selected", "delete all")
+- Improved error banner UX (persistent, dismissible, contextual — replacing the current inline text)
+- Per-platform regenerate progress feedback (independent busy state per platform card)
+- Platform icons in the UI (branded icons alongside platform name labels)
+
 ---
 
 ## Licensing (Planned for v1)
@@ -213,3 +219,43 @@ Length tiers must include structural hints such as:
 - structural templates
 
 These constraints significantly improve adherence to target content lengths.
+
+
+## 2026-03-17 — Dark mode uses class-based approach, not media query
+
+Switched from `@media (prefers-color-scheme: dark)` to a JS-managed
+`.dark` class on `document.documentElement`.
+
+Approach:
+- `@variant dark (&:where(.dark, .dark *))` in globals.css enables
+  Tailwind `dark:` variants to respond to the `.dark` class.
+- On mount, the app reads `localStorage.getItem("theme")` and falls
+  back to `window.matchMedia("(prefers-color-scheme: dark)")`.
+- Manual toggle writes `"dark"` or `"light"` to localStorage and
+  updates the class immediately.
+
+Reason:
+Media-query-only dark mode cannot be overridden by a manual toggle.
+Class-based approach allows the user's preference to persist and
+override the OS setting independently.
+
+
+## 2026-03-17 — Light mode uses neutral slate palette (not pure black/white)
+
+Pure black (`bg-black`) buttons and white surfaces looked harsh and
+visually unpolished.
+
+Adopted palette:
+- Primary button: `bg-slate-700 hover:bg-slate-600` (not black)
+- Card borders: `border-slate-200`
+- Input/control borders: `border-slate-300`
+- Hover surfaces: `hover:bg-slate-100` (not `bg-slate-50`)
+- Base text: `text-slate-900` set on `<main>` for reliable Tailwind inheritance
+
+Dark mode equivalents use `dark:bg-slate-800/900`, `dark:border-slate-700`,
+`dark:text-slate-100`.
+
+Reason:
+Pure black/white feels unrefined. Slate tones are neutral and sharp
+without being harsh. Setting `text-slate-900` on `<main>` also fixes
+CSS variable inheritance unreliability inside Tailwind-styled containers.

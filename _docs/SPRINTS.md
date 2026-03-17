@@ -156,26 +156,41 @@ Completed:
 
 ## Sprint 6 — UI/UX Polish
 
-Status: In Progress
+Status: Feature Complete
 
 Objective:
-UI/UX polish pass before release planning completes.
+UI/UX polish pass and release preparation for v0.9.0-alpha.
 
-Planned:
+### Completed
 
-- Issue #29 — Resolve TypeScript build failure and pre-existing lint violations (required before v1.0)
-- Issue #15 — Implement proper dark mode theme (tokens + full component styling)
-- Additional UI/UX polish items to be decided after #15 and #29 are complete
+- Issue #29 — Resolved TypeScript build failure (route.ts type annotation) and pre-existing lint violations
+- Issue #15 — Dark mode: full component styling with Tailwind `dark:` variants, class-based toggle via `@variant dark`
+- Issue #31 — Generation progress indicator added to generate button
+- Issue #32 — Auto-scroll to generated posts after generation completes
+- Issue #34 — README.md created for v0.9.0-alpha release
+- Issue #35 — (closed as duplicate; Docker tracked under #36)
+- Issue #39 — Manual light/dark theme toggle with OS preference detection and localStorage persistence
+- Issue #40 — UI color consistency: intelligence add-on rows now reflect checked/unchecked state via conditional background
+- Issue #41 — Light mode text palette fix: `text-slate-900` baseline on `<main>` ensures reliable Tailwind color inheritance
+- Issue #36 — Docker support: multi-stage Dockerfile (Alpine), docker-compose.yml with SQLite volume mount, .dockerignore
+- Issue #42 — README updated with Docker quickstart, Unraid deployment guide, and common commands
 
-Notes:
-- Sprint 6 is reserved for UI/UX polish before release planning completes
-- Issue #15 (proper dark mode theme) is moved from Sprint 5 into Sprint 6
-- Additional UI/UX improvements will be brainstormed and prioritized after Sprint 5 is complete
+### Remaining
 
-### Pre-release Investigation — Investigate TypeScript and lint failures before v1.0 (Issue #29)
+- Issue #37 — Prepare and tag v0.9.0-alpha release (in progress)
+- Issue #38 — Screenshots — deferred to pre-release prep ahead of v1.0; not required for alpha tag
 
-- **Required before v1.0 release.**
-- These are **pre-existing issues** not introduced by Sprint 5 changes (confirmed during Sprint 5 #26/#27 verification pass).
+### Notes
+
+- Sprint 6 is the final sprint before the v0.9.0-alpha tag
+- Dark mode uses class-based approach: `.dark` on `document.documentElement`, toggled in JS, persisted in localStorage
+- Light mode palette uses `bg-slate-700` primary button, `border-slate-200/300` throughout (not pure black/white)
+- Issue #15 (dark mode) was moved from Sprint 5 into Sprint 6
+
+### Pre-release Investigation — TypeScript and lint failures (Issue #29) — Resolved
+
+- **Resolved in Sprint 6.**
+- These were **pre-existing issues** not introduced by Sprint 5 changes (confirmed during Sprint 5 #26/#27 verification pass).
 
 #### TypeScript build failure
 - File: `app/api/health/db/route.ts` line 10
@@ -186,3 +201,38 @@ Notes:
 - 29 `@typescript-eslint/no-explicit-any` errors spread across `app/api/generate/route.ts`, `app/api/intel/route.ts`, `app/api/suggest-topics/route.ts`, `app/api/drafts/route.ts`, `app/api/drafts/[id]/route.ts`, and `app/page.tsx`.
 - 1 `@typescript-eslint/no-unused-vars` warning in `app/page.tsx` (`loadFromHistory`).
 - `npm run lint` exits with code 1. No new violations were introduced by Sprint 5.
+
+---
+
+## v0.9.0-alpha — Release Summary (2026-03-17)
+
+v0.9.0-alpha is the first public alpha of Atlas-Socialmatic, completing Sprints 1–6.
+
+### Included
+
+- Multi-platform content generation (LinkedIn, X, Instagram, Threads, Blog)
+- Platform-aware formatting with per-platform character counters
+- Per-platform regeneration
+- LinkedIn intelligence: hooks (5+) and hashtag strategy packs (Broad / Niche / Long-tail)
+- Independent hook and hashtag regeneration
+- Topic suggestion engine
+- SQLite-backed draft persistence with history, edit, and delete
+- Persistent default settings (platforms, tone, audience, length tier)
+- Light / Dark theme with manual toggle and localStorage persistence
+- Per-IP rate limiting and LLM retry with Retry-After support
+- Docker support (Dockerfile + docker-compose.yml) with persistent SQLite volume mount
+- Unraid deployment guide in README
+
+### Known Limitations
+
+- No brand voice or template presets (planned for v1.0)
+- No Markdown / JSON export (planned for v1.0)
+- No per-platform busy state — single shared busy flag (planned for v1.0)
+- No collapsible panels (planned for v1.0)
+- No bulk history deletion UI (planned for v2.0)
+- Screenshots not yet captured — deferred to pre-release prep (Issue #38)
+- Known lint violations present (`no-explicit-any`) — non-blocking for alpha
+
+### Intended Audience
+
+Early testers comfortable with self-hosted Docker deployments and BYO API keys.
