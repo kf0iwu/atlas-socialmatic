@@ -97,6 +97,51 @@ All three env vars from `.env.example` are supported — see [Environment Variab
 
 Tested on: Docker on Unraid, Docker on Ubuntu/Debian.
 
+### Unraid
+
+**Prerequisites:** Unraid with Docker enabled. Open the web terminal via **Tools → Terminal** in the Unraid UI, or SSH into your server.
+
+**1. Create an appdata folder and get the project files:**
+
+```bash
+mkdir -p /mnt/user/appdata/atlas-socialmatic
+cd /mnt/user/appdata/atlas-socialmatic
+git clone https://github.com/kf0iwu/atlas-socialmatic.git .
+```
+
+> `git` is not installed on Unraid by default. Install it via the **NerdTools** plugin (Community Applications → search "NerdTools" → enable git). Alternatively, download the project as a ZIP from GitHub and extract it into this folder using the Unraid file manager.
+
+**2. Create your environment file:**
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` in the Unraid file manager or with `vi .env` in the terminal. Set `OPENAI_API_KEY` to your API key. Save and close.
+
+**3. Build and start:**
+
+```bash
+docker compose up -d
+```
+
+The first build takes a few minutes while Docker compiles the app. Once complete, the container starts automatically and will restart on server reboot.
+
+**4. Open the app:**
+
+Go to `http://YOUR-UNRAID-IP:3000` in a browser. Your Unraid server IP is shown in the top-left corner of the Unraid dashboard.
+
+**Data persistence:**
+Your drafts database is stored at `/mnt/user/appdata/atlas-socialmatic/data/atlas.db`. If you use the CA Backup/Restore or Appdata Backup plugin, this path is included automatically.
+
+**To update to a newer version:**
+
+```bash
+cd /mnt/user/appdata/atlas-socialmatic
+git pull
+docker compose up -d --build
+```
+
 ---
 
 ## Architecture
