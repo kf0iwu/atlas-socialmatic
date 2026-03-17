@@ -67,9 +67,35 @@ To use a local model (e.g. Ollama, LM Studio), set `OPENAI_BASE_URL` to your loc
 
 ## Docker
 
-> Docker support is coming in Sprint 6 (Issue #36). A `Dockerfile` and `docker-compose.yml` will be provided before the v1.0 release.
->
-> Target environments: Docker on Unraid, Docker on Ubuntu/Debian.
+**Requirements:** Docker and Docker Compose V2 (`docker compose` command)
+
+```bash
+# 1. Copy the example env file and fill in your API key
+cp .env.example .env
+# Edit .env — set OPENAI_API_KEY at minimum
+
+# 2. Build and start
+docker compose up -d
+
+# 3. Open the app
+open http://localhost:3000
+```
+
+The SQLite database is stored at `./data/atlas.db` on the host, mounted into the container at `/app/data`. Data persists across container restarts and image rebuilds.
+
+**Common commands:**
+
+```bash
+docker compose down           # Stop the container
+docker compose up -d --build  # Rebuild and restart after a code change
+docker compose logs -f        # Tail logs
+```
+
+**Port:** defaults to `3000`. To change it, update the `ports` mapping in `docker-compose.yml`.
+
+All three env vars from `.env.example` are supported — see [Environment Variables](#environment-variables) above.
+
+Tested on: Docker on Unraid, Docker on Ubuntu/Debian.
 
 ---
 
@@ -147,11 +173,10 @@ No automated test suite exists yet (deferred to v2+).
 - [x] Character counter per platform
 - [x] Light / Dark theme toggle
 - [x] Rate limiting (per-IP time-window across all LLM endpoints)
-- [ ] Docker support (Issue #36)
+- [x] Docker support
 - [ ] Screenshots (Issue #38)
 
 **Known limitations in v0.9.0-alpha:**
-- No Docker image yet
 - No brand voice / template presets
 - No export (Markdown / JSON)
 - No bulk history deletion UI

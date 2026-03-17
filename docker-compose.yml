@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4.1-mini}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
