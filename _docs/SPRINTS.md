@@ -156,8 +156,16 @@ Completed:
 
 ## Sprint 6 — UI/UX Polish
 
+Status: In Progress
+
 Objective:
 UI/UX polish pass before release planning completes.
+
+Planned:
+
+- Issue #29 — Resolve TypeScript build failure and pre-existing lint violations (required before v1.0)
+- Issue #15 — Implement proper dark mode theme (tokens + full component styling)
+- Additional UI/UX polish items to be decided after #15 and #29 are complete
 
 Notes:
 - Sprint 6 is reserved for UI/UX polish before release planning completes
