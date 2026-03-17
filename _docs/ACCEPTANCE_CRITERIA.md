@@ -4,6 +4,40 @@ v1.0 is complete when all of the following conditions are met.
 
 ---
 
+## v0.9.0-alpha Status (as of 2026-03-17)
+
+The table below tracks which v1.0 criteria are complete in the current alpha
+versus still required before v1.0 is tagged.
+
+| Area | v0.9.0-alpha | Remaining for v1.0 |
+|---|---|---|
+| Core engine stability | Complete | Friendly errors for invalid key / rate limit / timeout |
+| Provider support | Complete | — |
+| Persistence (SQLite, drafts, settings) | Complete | — |
+| Character counters | Complete | — |
+| Hooks + hashtag intelligence | Complete | — |
+| Topic suggestion | Complete | — |
+| Dark / light theme toggle | Complete | — |
+| Rate limiting + retry | Complete | — |
+| Copy-all | Complete | — |
+| Overwrite confirmation | Complete | — |
+| Toast notifications | Complete | — |
+| Brand voice presets | Not started | Required for v1.0 |
+| Template presets | Not started | Required for v1.0 |
+| Markdown / JSON export | Not started | Required for v1.0 |
+| Split busy states (per-platform) | Not started | Required for v1.0 |
+| Collapsible panels | Not started | Required for v1.0 |
+| Docker (Dockerfile + Compose) | In progress (#36) | Required for v1.0 |
+| README | Complete | — |
+| DEPLOYMENT.md | Not started | Required for v1.0 |
+| CONFIGURATION.md | Not started | Required for v1.0 |
+| USER_GUIDE.md | Not started | Required for v1.0 |
+| TROUBLESHOOTING.md | Not started | Required for v1.0 |
+| LICENSE file | Not started | Required for v1.0 |
+| v1.0.0 version tag | Not started | Required for v1.0 |
+
+---
+
 ## Core Engine Stability
 
 - Post generation works reliably across supported platforms

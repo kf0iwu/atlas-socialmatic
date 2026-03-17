@@ -159,20 +159,34 @@ Completed:
 Status: In Progress
 
 Objective:
-UI/UX polish pass before release planning completes.
+UI/UX polish pass and release preparation for v0.9.0-alpha.
 
-Planned:
+### Completed
 
-- Issue #29 — Resolve TypeScript build failure and pre-existing lint violations (required before v1.0)
-- Issue #15 — Implement proper dark mode theme (tokens + full component styling)
-- Additional UI/UX polish items to be decided after #15 and #29 are complete
+- Issue #29 — Resolved TypeScript build failure (route.ts type annotation) and pre-existing lint violations
+- Issue #15 — Dark mode: full component styling with Tailwind `dark:` variants, class-based toggle via `@variant dark`
+- Issue #31 — Generation progress indicator added to generate button
+- Issue #32 — Auto-scroll to generated posts after generation completes
+- Issue #34 — README.md created for v0.9.0-alpha release
+- Issue #35 — (closed as duplicate; Docker tracked under #36)
+- Issue #39 — Manual light/dark theme toggle with OS preference detection and localStorage persistence
+- Issue #40 — UI color consistency: intelligence add-on rows now reflect checked/unchecked state via conditional background
+- Issue #41 — Light mode text palette fix: `text-slate-900` baseline on `<main>` ensures reliable Tailwind color inheritance
 
-Notes:
-- Sprint 6 is reserved for UI/UX polish before release planning completes
-- Issue #15 (proper dark mode theme) is moved from Sprint 5 into Sprint 6
-- Additional UI/UX improvements will be brainstormed and prioritized after Sprint 5 is complete
+### Remaining
 
-### Pre-release Investigation — Investigate TypeScript and lint failures before v1.0 (Issue #29)
+- Issue #36 — Docker support (Dockerfile + Docker Compose) — required for v0.9.0-alpha release
+- Issue #38 — Screenshots for README and release materials
+- Issue #37 — Prepare and tag v0.9.0-alpha release
+
+### Notes
+
+- Sprint 6 is the final sprint before the v0.9.0-alpha tag
+- Dark mode uses class-based approach: `.dark` on `document.documentElement`, toggled in JS, persisted in localStorage
+- Light mode palette uses `bg-slate-700` primary button, `border-slate-200/300` throughout (not pure black/white)
+- Issue #15 (dark mode) was moved from Sprint 5 into Sprint 6
+
+### Pre-release Investigation — TypeScript and lint failures (Issue #29)
 
 - **Required before v1.0 release.**
 - These are **pre-existing issues** not introduced by Sprint 5 changes (confirmed during Sprint 5 #26/#27 verification pass).

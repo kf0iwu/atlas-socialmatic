@@ -29,6 +29,12 @@ posts and blog drafts.
 - 	Shared per-IP rate-limit guard across all LLM endpoints (Sprint 5 / Issue #26)
 - 	Transient LLM retry with Retry-After support, max 3 attempts (Sprint 5 / Issue #27)
 - 	Prompt quality and structural variant diversity improvements (Sprint 5 / Issue #25)
+- 	Dark mode with class-based theme (Sprint 6 / Issue #15)
+- 	Manual light/dark theme toggle with OS preference detection and localStorage persistence (Sprint 6 / Issue #39)
+- 	Light mode color palette: neutral slate-based colors throughout (Sprint 6 / Issues #40, #41)
+- 	Generation progress indicator (Sprint 6 / Issue #31)
+- 	Auto-scroll to generated posts after generation (Sprint 6 / Issue #32)
+- 	README.md (Sprint 6 / Issue #34)
 
 ## Architecture
 
