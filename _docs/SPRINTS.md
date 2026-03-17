@@ -138,18 +138,43 @@ Sprint 4 completes the core architecture for the Atlas-Socialmatic MVP. The syst
 
 ## Sprint 5 — Quality and Reliability
 
+Status: Feature Complete
+
 Objective:
 Improve generated content quality and strengthen system reliability while polishing the UI.
 
-Planned:
+Completed:
 
 ### Content Quality
-- Improve LinkedIn post formatting and structure
-- Strengthen prompt tuning for stronger hooks and variant diversity
-
-### UX
-- Dark mode theme
+- LinkedIn post formatting and structure improvements
+- Prompt quality and variant diversity improvements (Issue #25): explicit per-variant structural guidance added for X, Instagram, and Threads; global variant diversity section strengthened
 
 ### Reliability
-- API rate-limit guard
-- Retry logic for failed LLM calls
+- Shared per-IP time-window rate-limit guard across all LLM endpoints (Issue #26)
+- Transient LLM retry with Retry-After header support, max 3 attempts (Issue #27)
+- Backend filters LLM output to requested platforms only in `/api/generate`; prevents extra model-returned keys from rendering unintended content (Issue #28)
+
+## Sprint 6 — UI/UX Polish
+
+Objective:
+UI/UX polish pass before release planning completes.
+
+Notes:
+- Sprint 6 is reserved for UI/UX polish before release planning completes
+- Issue #15 (proper dark mode theme) is moved from Sprint 5 into Sprint 6
+- Additional UI/UX improvements will be brainstormed and prioritized after Sprint 5 is complete
+
+### Pre-release Investigation — Investigate TypeScript and lint failures before v1.0 (Issue #29)
+
+- **Required before v1.0 release.**
+- These are **pre-existing issues** not introduced by Sprint 5 changes (confirmed during Sprint 5 #26/#27 verification pass).
+
+#### TypeScript build failure
+- File: `app/api/health/db/route.ts` line 10
+- Cause: `row?.ok` property access on the untyped return of `better-sqlite3`'s `.get()`, which TypeScript infers as `{}`. The `ok` property does not exist on that type.
+- `npm run build` fails at the `tsc` type-check phase. Turbopack compilation itself passes (`✓ Compiled successfully`).
+
+#### Lint failures
+- 29 `@typescript-eslint/no-explicit-any` errors spread across `app/api/generate/route.ts`, `app/api/intel/route.ts`, `app/api/suggest-topics/route.ts`, `app/api/drafts/route.ts`, `app/api/drafts/[id]/route.ts`, and `app/page.tsx`.
+- 1 `@typescript-eslint/no-unused-vars` warning in `app/page.tsx` (`loadFromHistory`).
+- `npm run lint` exits with code 1. No new violations were introduced by Sprint 5.

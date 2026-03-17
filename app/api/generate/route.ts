@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 import { callResponsesApi } from "@/lib/llm/provider";
+import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
 type LengthTier = "short" | "medium" | "long";
@@ -62,7 +63,10 @@ function normalizeTier(x: any): LengthTier {
 }
 
 export async function POST(req: Request) {
+  let acquired = false;
   try {
+    acquireOrThrow(req);
+    acquired = true;
     const body = (await req.json()) as ReqBody;
 
     if (!body.topic || body.topic.trim().length < 3) {
@@ -99,10 +103,21 @@ ${platforms.join(", ")}
 Rules by platform (apply the platform’s tier):
 
 linkedin:
-- short: 80–140 words
-- medium: 140–240 words
-- long: 240–400 words
-- 0–3 hashtags max, end with a CTA
+- The selected length tier is mandatory. Follow it closely.
+- short: 300–600 characters total (~50–100 words); write 2-3 short paragraphs; stop before 600 characters
+- medium: 700–1100 characters total (~120–180 words); write 4-5 short paragraphs; target ~900 characters
+- long: 1000–1500 characters total (~170–250 words); target ~1200 characters; body paragraphs must be 2–3 sentences — single-sentence paragraphs are not acceptable except for the hook and closing question; if under 1000 characters, expand each body paragraph before finalizing
+- Long post structure with sentence targets: (1) hook — 1 punchy line, (2) context or problem — 2–3 sentences (~30–45 words), (3) specific observation, scenario, or concrete example — 2–3 sentences (~30–45 words), (4) core insight or lesson — 2–3 sentences (~30–45 words), (5) practical implication for the reader — 2–3 sentences (~30–45 words), (6) closing question — 1 sentence
+- Open with a strong hook: a bold claim, counterintuitive insight, direct question, or surprising observation (1–2 lines max); the hook should not be considered as part of the target character counts for short, medium, and large, ensure character targets are being met
+- The first line must be a short, punchy hook (ideally under 12 words) that makes the reader curious to continue
+- The hook should stand alone as the first paragraph
+- Avoid announcing the topic in the opening line (e.g., “Today I want to talk about...”). Start directly with the insight, problem, or surprising observation
+- Focus the post on one clear insight rather than summarizing the topic broadly
+- Use short paragraphs of 2–4 sentences each, separated by blank lines — no dense walls of text
+- For the practical takeaway variant (Variant 2), include a bulleted list of 3–5 items in one body paragraph; format bullets as separate lines using "• item" — do not write the list inline with semicolons or commas
+- End with a question that invites professionals to share experience, perspective, or challenges (avoid generic questions like “What do you think?”)
+- Always end with 1–3 relevant industry hashtags on their own line — hashtags are mandatory, not optional, do not include hashtags as part of the targeted final word count
+- Prefer specific professional hashtags over generic tags like #innovation, #leadership, or #growth
 - return an array of 3 variants
 
 x:
@@ -110,18 +125,27 @@ x:
 - medium: <= 220 chars
 - long: <= 280 chars
 - no hashtag pile
+- Variant 1: declarative statement or bold claim; no question mark
+- Variant 2: concrete tip or specific example; may use a short list or "X / Y / Z" format if chars allow
+- Variant 3: open with a question or counterintuitive framing; end with an implication, not another question
 - return an array of 3 variants
 
 instagram:
 - short: 1–2 short paragraphs + 5–8 hashtags at end
 - medium: 2–3 paragraphs + 8–12 hashtags at end
 - long: 4–6 paragraphs + 10–15 hashtags at end
+- Variant 1: insight-led — open with the observation, build toward a takeaway, close with a soft CTA or implication
+- Variant 2: tip-led — open with the actionable advice, support with context, close with an invitation to act or share
+- Variant 3: question-led — open with a provocative question, answer it through the caption, close with a follow-up question
 - return an array of 3 variants
 
 threads:
 - short: 2–4 sentences + question
 - medium: 5–8 sentences + question
 - long: 9–14 sentences + question
+- Variant 1: open with a sharp observation; build context sentence by sentence; close with a question about implications
+- Variant 2: open with the practical point; use plain, direct language throughout; close with a question that invites others to share experience
+- Variant 3: open with a question or counter-take; answer it through the post; close with a different open-ended question
 - return an array of 3 variants
 
 blog:
@@ -130,6 +154,23 @@ blog:
 - long: ~2000–3500 words (6–10 sections)
 - use markdown with a title and headings
 - return a single string (not an array)
+
+Variant diversity (linkedin, x, instagram, threads):
+- Variant 1: lead with an insight or strong opinion about the topic
+- Variant 2: lead with a practical takeaway or concrete tip
+- Variant 3: lead with a reflective question or observation
+- Variants must differ in three dimensions: opening style, body structure, and closing CTA — changing only the opening line is not sufficient
+- Variant 1 closes with an implication or consequence; Variant 2 closes with an action or challenge to the reader; Variant 3 closes with an open question
+- Do not produce three versions of the same post with minor wording changes
+
+Writing quality (linkedin, x, instagram, threads):
+- Write in an observer voice, not first-person — avoid "I", "my", "we"; frame insights as industry patterns, common scenarios, or practitioner observations
+- Write in a professional but conversational tone; avoid corporate jargon and marketing language
+- Never open with generic scene-setters: "In today's world", "Many organizations", "In today's fast-paced environment", or similar
+- Avoid hollow filler phrases: "leverage", "key to success", "game-changer", "seamlessly", "in the realm of"
+- Favour specific, concrete observations over vague advice
+- Strong openings: bold statement, counterintuitive claim, direct question, or a specific scenario
+- Do not open paragraphs with structural label phrases like "An example is...", "The insight is...", "For practitioners..." — write each paragraph naturally without announcing what type of content it contains
 
 Important:
 - For linkedin/x/instagram/threads: value must be an array of 3 strings.
@@ -164,14 +205,28 @@ Important:
 
     try {
       const parsed = JSON.parse(cleaned);
-      return NextResponse.json({ ok: true, posts: parsed });
+      const posts = Object.fromEntries(platforms.map((p) => [p, parsed[p]]).filter(([, v]) => v !== undefined));
+      return NextResponse.json({ ok: true, posts });
     } catch {
       return NextResponse.json({ ok: true, raw: outputText });
     }
-  } catch (e: any) {
+  } catch (error: any) {
+    if (isRateLimitError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: error.code === "RATE_LIMIT" ? 429 : 503,
+          headers: error.retryAfterSeconds
+            ? { "Retry-After": String(error.retryAfterSeconds) }
+            : undefined,
+        }
+      );
+    }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(e?.message ?? e) },
+      { error: "Unhandled error", details: String(error?.message ?? error) },
       { status: 500 }
     );
+  } finally {
+    if (acquired) release();
   }
 }

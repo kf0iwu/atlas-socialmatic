@@ -22,10 +22,13 @@ posts and blog drafts.
 -   Regenerate per platform
 -   Topic suggestion engine (`/api/suggest-topics`)
 -   Intelligence endpoint (`/api/intel`)
--   LinkedIn hook generation (planned Sprint 3)
--   Hashtag strategy packs (planned Sprint 3)
+-   LinkedIn hook generation (Sprint 3)
+-   Hashtag strategy packs (Sprint 3)
 - 	Local history (localStorage) — Sprint 2
 - 	SQLite-backed persistent draft history (Sprint 4)
+- 	Shared per-IP rate-limit guard across all LLM endpoints (Sprint 5 / Issue #26)
+- 	Transient LLM retry with Retry-After support, max 3 attempts (Sprint 5 / Issue #27)
+- 	Prompt quality and structural variant diversity improvements (Sprint 5 / Issue #25)
 
 ## Architecture
 
