@@ -58,6 +58,12 @@
 - UI-based provider configuration
 - Advanced provider plugin system
 
+### Deferred UX (v2+)
+- History bulk-deletion UX (checkboxes, "delete selected", "delete all")
+- Improved error banner UX (persistent, dismissible, contextual — replacing the current inline text)
+- Per-platform regenerate progress feedback (independent busy state per platform card)
+- Platform icons in the UI (branded icons alongside platform name labels)
+
 ---
 
 ## Licensing (Planned for v1)

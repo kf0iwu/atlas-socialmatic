@@ -31,7 +31,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *     - Render
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 /* =========================
  * 1) Types + constants
@@ -340,6 +340,17 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
       cancelled = true;
     };
   }, []);
+
+  // Scroll to generated posts when generation completes — not on history load or restore
+  const postsRef = useRef<HTMLDivElement>(null);
+  const prevBusyRef = useRef(false);
+  useEffect(() => {
+    const wasGenerating = prevBusyRef.current;
+    prevBusyRef.current = busy;
+    if (wasGenerating && !busy && posts) {
+      postsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [busy, posts]);
 
   // --- Intelligence (Sprint 3) ---
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -953,6 +964,16 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 {busy ? "Generating..." : intelBusy ? "Analyzing..." : "Generate Selected"}
               </button>
 
+              {busy && (
+                <span className="flex items-center gap-2 text-sm text-slate-500">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Generating content...
+                </span>
+              )}
+
               {!canGenerate && (
                 <span className="text-sm text-slate-500">
                   Enter a topic and select at least one platform
@@ -1061,7 +1082,7 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
           {/* Issue #21 fix: post outputs render independently of intelligence state */}
           {posts && (
-            <div className="grid gap-4">
+            <div ref={postsRef} className="grid gap-4">
               <PlatformCard
                 platform="linkedin"
                 title="LinkedIn"
