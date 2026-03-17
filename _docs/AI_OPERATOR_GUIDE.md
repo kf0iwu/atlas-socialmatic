@@ -1,14 +1,45 @@
-# Claude Prompt Guide (Atlas-Socialmatic)
+# AI Operator Guide (Atlas-Socialmatic)
 
-This guide defines how prompts should be written when instructing Claude to make changes to this repository.
+This document defines how AI assistants (ChatGPT, Claude, etc.) should collaborate on this repository.
 
-Claude should be treated as a **controlled code editing assistant**, not an autonomous agent. Prompts must tightly constrain scope so Claude produces **small, predictable edits**.
+The goal is **safe, predictable, high-velocity development**.
+
+Assistants should behave like a **senior pair programmer and DevOps helper**, not an autonomous coding agent.
 
 ---
 
-## Prompt Structure
+# Core Principles
 
-All prompts should follow this structure:
+AI assistants should prioritize:
+
+- small safe changes
+- explicit scope
+- reproducible steps
+- PowerShell-friendly commands
+- copy/paste workflows
+- GitHub-first development
+
+The assistant should guide development using this loop:
+
+problem → issue → minimal fix → commit → verify
+
+---
+
+# Claude Usage Model
+
+Claude is used as a **controlled code editing tool**.
+
+Claude prompts must tightly constrain scope so Claude produces **small, predictable edits**.
+
+Claude should **not explore the repository freely**.
+
+Claude should only modify files explicitly listed in prompts.
+
+---
+
+# Claude Prompt Structure
+
+All prompts sent to Claude must follow this structure:
 
     Read CLAUDE.md first.
 
@@ -36,7 +67,7 @@ All prompts should follow this structure:
 
 ---
 
-## Example Prompt
+# Example Claude Prompt
 
     Read CLAUDE.md first.
 
@@ -65,55 +96,123 @@ All prompts should follow this structure:
 
 ---
 
-## Guardrails
+# GitHub Workflow
 
-Claude prompts must always include the following safeguards:
+When issues or improvements are discovered, assistants should prefer creating **GitHub issues first**.
 
-### Explicit file scope
-Always specify exactly which files Claude is allowed to modify.
+Issues should include:
 
-### Minimal patches
-Claude should implement the smallest change required to solve the problem.
+- problem description
+- expected behavior
+- steps to reproduce
+- possible root cause if known
 
-### Approval gate
-Claude must propose a patch before applying changes.
+PowerShell-friendly issue creation example:
 
-### Diff output
-Claude responses should show **only the diff**, not full files.
+    gh issue create `
+      --title "Bug: example issue" `
+      --label bug `
+      --body "
+Problem
+-------
+
+Describe the issue here.
+
+Expected behavior
+-----------------
+
+Describe expected behavior.
+
+Steps to reproduce
+------------------
+
+1.
+2.
+3.
+"
 
 ---
 
-## Debugging Prompts
+# Git Workflow
 
-When debugging:
-
-- restrict Claude to specific files
-- specify which functions to inspect
-- require identification of the root cause
-- require a proposed patch
+Assistants should recommend **small commits**.
 
 Example:
 
-    Files allowed to inspect:
-    - app/page.tsx
-    - app/api/generate/route.ts
+    git add app/api/generate/route.ts
+    git commit -m "Fix: filter LLM output to requested platforms"
 
-    Focus on:
-    - generateAllSelected()
-    - callGenerate()
+Avoid suggesting destructive commands such as:
 
----
+    git reset --hard
+    git push --force
 
-## Documentation Edits
-
-When editing documentation:
-
-- append content rather than rewriting sections
-- avoid modifying existing content unless explicitly instructed
+unless explicitly requested.
 
 ---
 
-## Philosophy
+# PowerShell Command Style
+
+All commands must be **PowerShell compatible**.
+
+Guidelines:
+
+- avoid bash syntax
+- avoid `&&`
+- prefer separate commands
+- use backticks for multiline commands
+
+Example:
+
+    gh issue create `
+      --title "Sprint 5: Retry failed LLM requests" `
+      --label sprint-5 `
+      --body "Description here"
+
+Commands should be safe to **paste directly into PowerShell**.
+
+---
+
+# Debugging Workflow
+
+When debugging:
+
+1. inspect only the relevant files
+2. trace the data flow
+3. identify root cause
+4. propose smallest safe patch
+5. verify no regression risk
+
+Avoid speculative refactoring.
+
+---
+
+# Documentation Updates
+
+When architectural or workflow decisions are made, suggest updates to:
+
+    docs/decisions.md
+    docs/roadmap.md
+
+Documentation edits should **append content**, not rewrite existing sections.
+
+---
+
+# Copy/Paste Formatting
+
+All actionable items must be delivered in **clean paste blocks**, including:
+
+- PowerShell commands
+- Git commands
+- GitHub issue text
+- Claude prompts
+- Markdown documents
+
+Avoid formatting that causes text to spill outside blocks.
+
+---
+
+# Philosophy
 
 Claude should behave like a **surgical patch tool**.
 
@@ -124,4 +223,4 @@ Expected behavior:
 3. Produce a minimal diff.
 4. Wait for approval before applying changes.
 
-Claude should **not redesign working code or explore unrelated parts of the repository**.
+Claude should **not redesign working code or explore unrelated areas of the repository**.
