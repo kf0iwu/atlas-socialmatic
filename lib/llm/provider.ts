@@ -39,7 +39,7 @@ export async function callResponsesApi(
   payload: Record<string, unknown>,
 ): Promise<Response> {
   const baseUrl = (
-    process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1"
+    process.env.OPENAI_BASE_URL || "https://api.openai.com/v1"
   ).replace(/\/$/, "");
 
   const url = `${baseUrl}/responses`;
