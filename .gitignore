@@ -22,6 +22,8 @@ pnpm-debug.log*
 # local tooling
 *.local_patches/
 _patches/
+_docs/WORKSTATION_SETUP.md
+.claude/
 
 # Runtime SQLite database (Sprint 4 persistence)
 /data/
