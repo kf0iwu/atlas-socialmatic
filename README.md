@@ -219,7 +219,6 @@ No automated test suite exists yet (deferred to v2+).
 - [x] Light / Dark theme toggle
 - [x] Rate limiting (per-IP time-window across all LLM endpoints)
 - [x] Docker support
-- [ ] Screenshots (Issue #38)
 
 **Known limitations in v0.9.0-alpha:**
 - No brand voice / template presets
@@ -229,7 +228,7 @@ No automated test suite exists yet (deferred to v2+).
 
 ### v1.0 — Stable Self-Hosted Content Engine
 
-Planned additions: brand voice presets, template presets, export to Markdown/JSON, improved error handling, split busy states, collapsible panels, Docker-first deployment.
+Planned additions: brand voice presets, template presets, export to Markdown/JSON, improved error handling, split busy states, collapsible panels.
 
 ### v2.0 — Workflow Acceleration
 
