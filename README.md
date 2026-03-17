@@ -1,40 +1,191 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Atlas-Socialmatic
 
-## Getting Started
+**Self-hosted AI content generator for social media posts and blog drafts.**
 
-First, run the development server:
+Atlas-Socialmatic helps practical professionals, small businesses, and builders produce platform-optimized content without friction. Bring your own OpenAI (or compatible) API key — no SaaS, no subscriptions, no lock-in.
+
+---
+
+## Features
+
+- **Multi-platform generation** — LinkedIn, X, Bluesky, and blog posts in a single request
+- **Platform-aware formatting** — content shaped for each platform's conventions and character limits
+- **Per-platform regeneration** — regenerate one platform without touching others
+- **LinkedIn intelligence** — generate engagement hooks and hashtag strategy packs (Broad / Niche / Long-tail) via structured AI outputs
+- **Independent intel regeneration** — regenerate hooks or hashtag packs separately
+- **Topic suggestion engine** — LLM-powered topic brainstorming from a keyword or brief
+- **Draft persistence** — SQLite-backed draft history with auto-save, editing, and deletion
+- **Persistent settings** — default platforms, tone, audience, and length tier saved across sessions
+- **Light / Dark theme** — manual toggle with OS preference detection and localStorage persistence
+- **BYO API key** — uses your own OpenAI or OpenAI-compatible endpoint, configured via environment variables
+- **Self-hosted first** — Docker-ready, no external services required beyond your API provider
+
+---
+
+## Screenshots
+
+> Screenshots will be added before the v0.9.0-alpha tag.
+
+| Light Mode | Dark Mode |
+|---|---|
+| `docs/screenshots/light-mode.png` | `docs/screenshots/dark-mode.png` |
+
+---
+
+## Quick Start (Local Dev)
+
+**Requirements:** Node.js 20+, npm
 
 ```bash
+git clone https://github.com/kf0iwu/atlas-socialmatic.git
+cd atlas-socialmatic
+
+cp .env.example .env.local
+# Edit .env.local and set OPENAI_API_KEY
+
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The SQLite database is auto-created at `data/atlas.db` on first run.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `OPENAI_API_KEY` | Yes | — | API key for your OpenAI or compatible provider |
+| `OPENAI_MODEL` | No | `gpt-4.1-mini` | Model to use for all generation endpoints |
+| `OPENAI_BASE_URL` | No | `https://api.openai.com/v1` | Base URL for any OpenAI-compatible endpoint (no trailing slash) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To use a local model (e.g. Ollama, LM Studio), set `OPENAI_BASE_URL` to your local endpoint and `OPENAI_MODEL` to the model name your server exposes.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Docker
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> Docker support is coming in Sprint 6 (Issue #36). A `Dockerfile` and `docker-compose.yml` will be provided before the v1.0 release.
+>
+> Target environments: Docker on Unraid, Docker on Ubuntu/Debian.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
 
-## License 
+## Architecture
 
-Licensed under AGPLv3. See LICENSE.
+### Directory Structure
+
+```
+atlas-socialmatic/
+├── app/
+│   ├── page.tsx              # Entire frontend SPA (~1050 lines)
+│   ├── globals.css           # Tailwind v4 base styles + dark mode
+│   └── api/
+│       ├── generate/         # Multi-platform post generation
+│       ├── intel/            # Hooks + hashtag intelligence
+│       ├── suggest-topics/   # LLM topic suggestions
+│       ├── drafts/           # Draft list + create (GET/POST)
+│       ├── drafts/[id]/      # Draft CRUD + optimistic locking (GET/PUT/DELETE)
+│       └── health/db/        # DB connectivity check
+├── lib/
+│   └── db.ts                 # SQLite singleton + schema
+├── data/
+│   └── atlas.db              # Auto-created SQLite database (gitignored)
+└── _docs/                    # Design decisions, sprints, roadmap
+```
+
+### Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| UI | React 19, Tailwind CSS v4 |
+| Database | SQLite via `better-sqlite3` |
+| AI | OpenAI API (or OpenAI-compatible endpoint) |
+
+### Key Design Decisions
+
+- **Single-file frontend** — all UI state and handlers live in `app/page.tsx`
+- **BYO API key** — no API keys stored in the database; configured via environment only
+- **JSON columns** — `outputs`, `hooks`, `hashtag_packs` stored as JSON blobs; missing key = not yet generated
+- **Drafts snapshot inputs** — topic/audience/tone/platforms saved at generation time to prevent history drift
+- **Optimistic locking** — `PUT /api/drafts/[id]` requires `if_match_updated_at` in the request body; returns 409 on mismatch
+- **SQLite WAL mode** — enabled for concurrent read safety
+- **No external state library** — React hooks only (`useState`, `useEffect`, `useMemo`)
+
+See [_docs/DECISIONS.md](_docs/DECISIONS.md) for the full decision log.
+
+---
+
+## Development
+
+```bash
+npm run dev      # Start development server (http://localhost:3000)
+npm run build    # Production build
+npm start        # Start production server
+npm run lint     # Run ESLint
+```
+
+No automated test suite exists yet (deferred to v2+).
+
+---
+
+## Roadmap
+
+### v0.9.0-alpha (current)
+
+- [x] Multi-platform post generation
+- [x] LinkedIn intelligence (hooks + hashtag packs)
+- [x] Topic suggestion engine
+- [x] Draft persistence (SQLite)
+- [x] Draft history, editing, deletion
+- [x] Persistent default settings
+- [x] Per-platform regeneration
+- [x] Character counter per platform
+- [x] Light / Dark theme toggle
+- [x] Rate limiting (per-IP time-window across all LLM endpoints)
+- [ ] Docker support (Issue #36)
+- [ ] Screenshots (Issue #38)
+
+**Known limitations in v0.9.0-alpha:**
+- No Docker image yet
+- No brand voice / template presets
+- No export (Markdown / JSON)
+- No bulk history deletion UI
+- No per-platform busy state (single shared busy flag)
+
+### v1.0 — Stable Self-Hosted Content Engine
+
+Planned additions: brand voice presets, template presets, export to Markdown/JSON, improved error handling, split busy states, collapsible panels, Docker-first deployment.
+
+### v2.0 — Workflow Acceleration
+
+Content planner, thread mode for X, blog outline mode, draft history versioning, history search/filtering, additional AI provider support.
+
+See [_docs/ROADMAP.md](_docs/ROADMAP.md) for full scope details.
+
+---
+
+## Contributing
+
+Atlas-Socialmatic is open-source under AGPLv3. Sole authorship is maintained for the v1.x lifecycle. External pull requests are not accepted in v1 without an explicit copyright agreement.
+
+Feedback and bug reports are welcome via [GitHub Issues](https://github.com/kf0iwu/atlas-socialmatic/issues).
+
+---
+
+## Support Atlas
+
+If Atlas-Socialmatic saves you time, consider supporting the project:
+
+- [GitHub Sponsors](https://github.com/sponsors/kf0iwu)
+- [Ko-fi](https://ko-fi.com/kf0iwu)
+
+---
+
+## License
+
+[AGPLv3](LICENSE) — free to use, modify, and self-host. If you deploy a modified version as a network service, you must make the source available.
