@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { callChatCompletions, resolveLlmConfig } from "@/lib/llm/provider";
+import { callChatCompletions, friendlyLlmError, resolveLlmConfig } from "@/lib/llm/provider";
 import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
@@ -195,9 +195,8 @@ export async function POST(req: Request) {
     );
 
     if (!resp.ok) {
-      const errText = await resp.text();
       return NextResponse.json(
-        { error: "LLM request failed", details: errText },
+        { ok: false, error: friendlyLlmError(resp.status) },
         { status: 502 }
       );
     }
@@ -214,9 +213,7 @@ export async function POST(req: Request) {
     try {
       parsed = (typeof outputText === "string" ? JSON.parse(outputText) : outputText) as IntelParsed;
     } catch {
-      // If SDK/server ever returns already-parsed JSON or a non-JSON string,
-      // return the raw payload to debug.
-      return NextResponse.json({ ok: true, raw: outputText, data }, { status: 200 });
+      return NextResponse.json({ ok: false, error: "The AI returned a malformed response. Please try again." }, { status: 502 });
     }
 
     // Optional: if the model ever forgets mixed_line (shouldn't under strict),
@@ -244,7 +241,7 @@ export async function POST(req: Request) {
       );
     }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(error instanceof Error ? error.message : error) },
+      { ok: false, error: "An unexpected error occurred. Please try again." },
       { status: 500 }
     );
   } finally {

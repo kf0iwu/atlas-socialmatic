@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 
-import { callChatCompletions, resolveLlmConfig } from "@/lib/llm/provider";
+import { callChatCompletions, friendlyLlmError, resolveLlmConfig } from "@/lib/llm/provider";
 import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
@@ -183,9 +183,8 @@ Important:
     );
 
     if (!resp.ok) {
-      const errText = await resp.text();
       return NextResponse.json(
-        { error: "LLM request failed", details: errText },
+        { ok: false, error: friendlyLlmError(resp.status) },
         { status: 502 }
       );
     }
@@ -200,7 +199,7 @@ Important:
       const posts = Object.fromEntries(platforms.map((p) => [p, parsed[p]]).filter(([, v]) => v !== undefined));
       return NextResponse.json({ ok: true, posts });
     } catch {
-      return NextResponse.json({ ok: true, raw: outputText });
+      return NextResponse.json({ ok: false, error: "The AI returned a malformed response. Please try again." }, { status: 502 });
     }
   } catch (error: unknown) {
     if (isRateLimitError(error)) {
@@ -215,7 +214,7 @@ Important:
       );
     }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(error instanceof Error ? error.message : error) },
+      { ok: false, error: "An unexpected error occurred. Please try again." },
       { status: 500 }
     );
   } finally {

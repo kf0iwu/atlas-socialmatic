@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { callChatCompletions, resolveLlmConfig } from "@/lib/llm/provider";
+import { callChatCompletions, friendlyLlmError, resolveLlmConfig } from "@/lib/llm/provider";
 import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
@@ -81,8 +81,7 @@ Rules:
     );
 
     if (!resp.ok) {
-      const errText = await resp.text();
-      return NextResponse.json({ error: "LLM request failed", details: errText }, { status: 502 });
+      return NextResponse.json({ ok: false, error: friendlyLlmError(resp.status) }, { status: 502 });
     }
 
     const data = await resp.json();
@@ -94,7 +93,7 @@ Rules:
       const parsed = JSON.parse(cleaned);
       return NextResponse.json({ ok: true, ...parsed });
     } catch {
-      return NextResponse.json({ ok: true, raw: outputText });
+      return NextResponse.json({ ok: false, error: "The AI returned a malformed response. Please try again." }, { status: 502 });
     }
   } catch (error: unknown) {
     if (isRateLimitError(error)) {
@@ -109,7 +108,7 @@ Rules:
       );
     }
     return NextResponse.json(
-      { error: "Unhandled error", details: String(error instanceof Error ? error.message : error) },
+      { ok: false, error: "An unexpected error occurred. Please try again." },
       { status: 500 }
     );
   } finally {

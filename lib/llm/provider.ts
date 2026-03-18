@@ -120,3 +120,13 @@ export async function callChatCompletions(
   }
   throw lastError;
 }
+
+export function friendlyLlmError(status: number): string {
+  if (status === 401 || status === 403)
+    return "Invalid or missing API key. Check your LLM_API_KEY setting.";
+  if (status === 429)
+    return "The AI provider is rate-limiting this server. Please wait a moment and try again.";
+  if (status >= 500)
+    return "The AI provider is temporarily unavailable. Please try again.";
+  return "The AI provider returned an unexpected error. Please try again.";
+}
