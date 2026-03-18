@@ -40,6 +40,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 // TODO(#69): pull from package.json dynamically before v1.0
 const APP_VERSION = "0.9.1-alpha.0";
 const ISSUE_URL = "https://github.com/kf0iwu/atlas-socialmatic/issues/new?template=bug_report.md";
+const KOFI_URL = "https://ko-fi.com/kf0iwu";
+const SPONSORS_URL = "https://github.com/sponsors/kf0iwu/";
 
 type LengthTier = "short" | "medium" | "long";
 
@@ -796,6 +798,24 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
                 <span className="text-xs text-slate-400 dark:text-slate-500 mt-1">{APP_VERSION}</span>
               </div>
               <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 dark:text-slate-500">Support Me:</span>
+                <a
+                  href={KOFI_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                >
+                  Ko-fi
+                </a>
+                <span className="text-xs text-slate-300 dark:text-slate-600">·</span>
+                <a
+                  href={SPONSORS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                >
+                  GitHub Sponsors
+                </a>
                 <a
                   href={ISSUE_URL}
                   target="_blank"
