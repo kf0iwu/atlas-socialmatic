@@ -22,8 +22,18 @@ pnpm-debug.log*
 # local tooling
 *.local_patches/
 _patches/
-_docs/WORKSTATION_SETUP.md
+CLAUDE.md
 .claude/
+
+# personal / AI-internal docs (not needed on GitHub)
+_docs/WORKSTATION_SETUP.md
+_docs/ACCOUNTING.md
+_docs/GIT_CHEATSHEET.md
+_docs/AI_OPERATOR_GUIDE.md
+_docs/AI_DEBUG_PLAYBOOK.md
+_docs/PROJECT_CONTEXT.md
+_docs/PROJECT_NOTES.md
+_docs/REPO_MAP.md
 
 # Runtime SQLite database (Sprint 4 persistence)
 /data/
