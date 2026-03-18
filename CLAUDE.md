@@ -42,8 +42,9 @@ These design decisions should not be changed without explicit instruction:
 ## Environment Setup
 
 Copy `.env.example` to `.env.local` and set:
-- `OPENAI_API_KEY` — required
-- `OPENAI_MODEL` — optional, defaults to `gpt-4.1-mini`
+- `LLM_API_KEY` — required (also accepts `OPENAI_API_KEY` as fallback)
+- `LLM_BASE_URL` — optional, defaults to `https://api.openai.com/v1`
+- `LLM_MODEL` — optional, defaults to `gpt-4.1-mini`
 
 The SQLite database is auto-created at `data/atlas.db` on first run (gitignored).
 
@@ -74,6 +75,7 @@ All routes use Next.js App Router conventions with `export const runtime = "node
 | `POST /api/intel` | LinkedIn hooks + hashtag packs (structured outputs) |
 | `GET/POST /api/drafts` | List / create drafts |
 | `GET/PUT/DELETE /api/drafts/[id]` | Single draft CRUD with optimistic locking |
+| `GET/PUT /api/settings` | Read/write persistent settings (defaults + provider config) |
 | `GET /api/health/db` | DB connectivity check |
 
 ### Database
@@ -89,14 +91,14 @@ WAL mode is enabled. The DB module uses a global singleton (`global.__atlasDb`) 
 
 ### Intelligence Features (`/api/intel`)
 
-Uses OpenAI Responses API with structured JSON schema outputs. The schema is dynamically built based on which features are requested (`generate_hooks`, `generate_hashtags`). Hooks and hashtag packs can be regenerated independently.
+Uses `/v1/chat/completions` with a prompt-embedded JSON structure hint (provider-agnostic). The schema is dynamically built based on which features are requested (`generate_hooks`, `generate_hashtags`). Hooks and hashtag packs can be regenerated independently.
 
 ## Key Decisions
 
 - **JSON columns** for `outputs`, `hooks`, `hashtag_packs` — avoids normalization; SQL-level querying into these deferred to v2+
 - **Drafts snapshot resolved inputs** — topic/audience/tone/platforms saved at generation time to prevent history drift if defaults change later
 - **`default_platforms` initialized to `[]`** — DB stores state, not behavior; UI owns first-run defaults
-- **Light-only UI** — dark mode removed in Sprint 4 due to usability issues; not planned for v1
+- **Dark mode** — class-based (`.dark` on `documentElement`), toggled via localStorage; re-added in Sprint 6
 - **Sole authorship** — no external PRs accepted without explicit copyright agreement (dual licensing planned for v2+)
 
 ## Documentation
