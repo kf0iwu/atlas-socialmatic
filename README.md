@@ -95,6 +95,14 @@ The provider can also be configured from the sidebar UI — open the **Provider*
 **Model name mismatch:**
 - Providers require exact model names. For Ollama, run `ollama list` to see available names and set `LLM_MODEL` to match exactly.
 
+**Rate limiting:**
+
+Atlas-Socialmatic includes a built-in per-IP rate limiter (10 requests/minute, max 3 concurrent) applied to all LLM endpoints. A few things to be aware of:
+
+- **In-memory only** — rate limit state is not persisted. It resets on every container restart, process crash, or `docker compose down && up`. The limiter is a courtesy throttle, not a hard security boundary.
+- **Direct access without a reverse proxy** — when the app is accessed directly on port 3000 without a reverse proxy, the `x-forwarded-for` and `x-real-ip` headers are absent. In that case all users share a single rate limit bucket. For a strictly single-user self-hosted instance this is not a problem. For shared household or team use, put a reverse proxy (nginx, Caddy) in front and ensure it passes `X-Forwarded-For`.
+- **Per-user enforcement at scale** — this is a known v1 limitation. Persistent, per-user rate limiting is planned for v2.0.
+
 ---
 
 ## Docker
