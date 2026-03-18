@@ -37,6 +37,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
  * 1) Types + constants
  * ========================= */
 
+// TODO(#69): pull from package.json dynamically before v1.0
+const APP_VERSION = "0.9.1-alpha.0";
+const ISSUE_URL = "https://github.com/kf0iwu/atlas-socialmatic/issues/new?template=bug_report.md";
+
 type LengthTier = "short" | "medium" | "long";
 
 type HashtagSize = "small" | "medium" | "large";
@@ -787,15 +791,28 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
         <div className="space-y-6">
           <header className="space-y-2">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold dark:text-slate-50">Atlas-Socialmatic</h1>
-              <button
-                className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
-                onClick={toggleDark}
-                type="button"
-                aria-label="Toggle dark mode"
-              >
-                {isDark ? "☀ Light" : "☾ Dark"}
-              </button>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold dark:text-slate-50">Atlas-Socialmatic</h1>
+                <span className="text-xs text-slate-400 dark:text-slate-500 mt-1">{APP_VERSION}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={ISSUE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                >
+                  Submit Issue
+                </a>
+                <button
+                  className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                  onClick={toggleDark}
+                  type="button"
+                  aria-label="Toggle dark mode"
+                >
+                  {isDark ? "☀ Light" : "☾ Dark"}
+                </button>
+              </div>
             </div>
             <p className="text-slate-600 dark:text-slate-300">
               Generate platform-ready drafts, with topic suggestions,
