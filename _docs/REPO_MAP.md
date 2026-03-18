@@ -12,7 +12,6 @@ High-level structure:
 
     app/
     lib/
-    docs/
     _docs/
     public/
 
@@ -31,13 +30,15 @@ Responsibilities:
 - topic / audience / tone inputs
 - post generation triggers
 - result rendering
-- draft loading
+- draft loading / saving
+- provider configuration panel
 
 Key frontend functions:
 
     callGenerate()
     generateAllSelected()
     regenerateOne()
+    saveProviderSettings()
 
 ---
 
@@ -54,9 +55,9 @@ Responsibilities:
 - receives generation request
 - normalizes requested platforms
 - builds LLM prompt
-- calls Responses API
-- parses returned JSON
-- filters output to requested platforms
+- calls /v1/chat/completions via callChatCompletions()
+- parses returned JSON, strips code fences
+- filters output to requested platforms only
 - returns posts
 
 ---
@@ -67,9 +68,10 @@ Responsibilities:
 
 Responsibilities:
 
-- generate hooks
-- generate hashtags
+- generate LinkedIn hooks
+- generate hashtag packs (Broad / Niche / Long-tail)
 - merge metadata into drafts
+- uses prompt-embedded JSON structure hint (provider-agnostic)
 
 ---
 
@@ -83,6 +85,32 @@ Responsibilities:
 
 ---
 
+### Settings
+
+    app/api/settings/route.ts
+
+Responsibilities:
+
+- GET: return current settings row + env override flags
+- PUT: validate and persist provider config (llm_provider, llm_base_url, llm_model)
+  and default settings (platforms, tone, audience, length tier)
+- llm_base_url validated for http/https scheme (SSRF prevention)
+
+---
+
+### Drafts
+
+    app/api/drafts/route.ts          — list / create
+    app/api/drafts/[id]/route.ts     — GET / PUT (optimistic locking) / DELETE
+
+---
+
+### Health
+
+    app/api/health/db/route.ts       — DB connectivity check
+
+---
+
 # LLM Integration
 
 Core LLM wrapper:
@@ -91,9 +119,11 @@ Core LLM wrapper:
 
 Responsibilities:
 
-- calling OpenAI Responses API
-- handling model configuration
-- returning unified response objects
+- callChatCompletions(messages, opts) — POST to /v1/chat/completions with retry
+- resolveLlmConfig(fallback?) — resolves LLM_* env vars, OPENAI_* fallbacks, DB fallback
+- friendlyLlmError(status) — maps HTTP status to user-facing error message
+- Retry logic: max 3 attempts, exponential backoff, respects Retry-After header
+- Transient statuses: 429, >=500
 
 ---
 
@@ -105,26 +135,29 @@ Request guard:
 
 Responsibilities:
 
-- prevent excessive concurrent LLM calls
-- protect API from overload
+- per-IP time-window limiter (10 req/min window, max 3 concurrent)
+- RateLimitError class with code: "RATE_LIMIT" | "SERVER_BUSY"
+- acquireOrThrow(req) — checks concurrency then per-IP quota
+- isRateLimitError(error) — type guard used in all route catch blocks
+- In-memory only; resets on restart
+- Falls back to "unknown" bucket when IP headers absent (documented limitation)
 
 ---
 
 # Draft Persistence
 
-Draft storage is implemented using:
+Draft storage:
 
-    SQLite
+    SQLite via better-sqlite3 (WAL mode)
+    DB singleton: lib/db.ts (global.__atlasDb survives hot reloads)
+    DB path: data/atlas.db (auto-created, gitignored)
 
 Relevant API routes:
 
     app/api/drafts/
+    app/api/drafts/[id]/
 
-Responsibilities:
-
-- save drafts
-- update drafts
-- load history
+Optimistic locking on PUT via if_match_updated_at (returns 409 on mismatch).
 
 ---
 
@@ -132,13 +165,16 @@ Responsibilities:
 
 Repository documentation lives in:
 
-    docs/
+    _docs/
 
 Key files:
 
-    project_context.md
-    AI_DEBUG_PLAYBOOK.md
-    REPO_MAP.md
+    DECISIONS.md        — architectural decisions (read before structural changes)
+    ACCEPTANCE_CRITERIA.md — v1.0 completion checklist
+    ROADMAP.md          — version scope definitions
+    SPRINTS.md          — sprint history and release notes
+    PROJECT_CONTEXT.md  — AI assistant orientation
+    REPO_MAP.md         — this file
 
 ---
 
@@ -146,14 +182,7 @@ Key files:
 
 AI collaboration workflow lives in:
 
-    _docs/
-
-Key files:
-
-    AI_OPERATOR_GUIDE.md
-    CLAUDE_PROMPT_GUIDE.md
-
-Assistants must follow the workflows defined in those files.
+    _docs/AI_OPERATOR_GUIDE.md
 
 ---
 
@@ -161,29 +190,24 @@ Assistants must follow the workflows defined in those files.
 
 Current stage:
 
-    Sprint 5 (pre-v1.0 stabilization)
+    v0.9.1-alpha.0 (2026-03-18)
 
-Focus areas:
+Focus areas for v1.0:
 
-- reliability
-- prompt quality
-- error handling
-- UI polish
-
-Avoid large architectural changes during this phase.
+- documentation (DEPLOYMENT.md, CONFIGURATION.md, USER_GUIDE.md, TROUBLESHOOTING.md)
+- manual multi-provider validation
+- screenshots
 
 ---
 
 # When Investigating Bugs
-
-Assistants should start with the most likely files:
 
 Generation bugs:
 
     app/page.tsx
     app/api/generate/route.ts
 
-LLM response issues:
+LLM response / provider issues:
 
     lib/llm/provider.ts
 
@@ -194,6 +218,12 @@ Rate limit problems:
 Draft persistence issues:
 
     app/api/drafts/
+    lib/db.ts
+
+Settings / provider config issues:
+
+    app/api/settings/route.ts
+    lib/db.ts
 
 ---
 
@@ -205,6 +235,7 @@ Assistants should:
 - avoid large refactors
 - preserve API response shapes
 - maintain frontend/backend compatibility
+- read DECISIONS.md before architectural changes
 
 ---
 

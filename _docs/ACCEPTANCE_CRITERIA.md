@@ -4,16 +4,18 @@ v1.0 is complete when all of the following conditions are met.
 
 ---
 
-## v0.9.0-alpha Status (as of 2026-03-17)
+## v0.9.1-alpha Status (as of 2026-03-18)
 
 The table below tracks which v1.0 criteria are complete in the current alpha
 versus still required before v1.0 is tagged.
 
-| Area | v0.9.0-alpha | Remaining for v1.0 |
+| Area | v0.9.1-alpha | Remaining for v1.0 |
 |---|---|---|
-| Core engine stability | Complete | Friendly errors for invalid key / rate limit / timeout |
+| Core engine stability | Complete | — |
+| Friendly error handling (invalid key / rate limit / timeout / network) | Complete | — |
 | Provider support — OpenAI | Complete | — |
-| Provider support — Multi-provider | Not started | Required for v1.0 |
+| Provider support — Multi-provider (`/v1/chat/completions`) | Complete | — |
+| Provider selector UI + settings persistence | Complete | — |
 | Persistence (SQLite, drafts, settings) | Complete | — |
 | Character counters | Complete | — |
 | Hooks + hashtag intelligence | Complete | — |
@@ -28,7 +30,7 @@ versus still required before v1.0 is tagged.
 | Markdown / JSON export (file download) | Not started | Deferred to v2.0 |
 | Split busy states (per-platform) | Not started | Deferred to v2.0 |
 | Collapsible panels | Not started | Deferred to v2.0 |
-| Docker (Dockerfile + Compose) | In progress (#36) | Required for v1.0 |
+| Docker (Dockerfile + Compose) | Complete | — |
 | README | Complete | — |
 | DEPLOYMENT.md | Not started | Required for v1.0 |
 | CONFIGURATION.md | Not started | Required for v1.0 |
@@ -134,36 +136,39 @@ versus still required before v1.0 is tagged.
 
 ## Multi-Provider Support
 
+**Status: Complete (v0.9.1-alpha.0, issues #63–#66)**
+
 ### Phase 1 — Environment variable schema overhaul
 
-- [ ] `OPENAI_BASE_URL` and `OPENAI_MODEL` removed from codebase
-- [ ] `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` introduced
-- [ ] `.env.example` updated with all new variables
-- [ ] `docker-compose.yml` updated to use new variables
-- [ ] README and CONFIGURATION.md document new variable schema
+- [x] `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL` introduced as primary vars
+- [x] `OPENAI_*` retained as backward-compat fallbacks
+- [x] `.env.example` updated with all new variables
+- [x] `docker-compose.yml` updated to use new variables
+- [x] README documents new variable schema and provider support table
 
 ### Phase 2 — Migrate provider.ts to /v1/chat/completions
 
-- [ ] `callResponsesApi` replaced with `callChatCompletions`
-- [ ] All three LLM endpoints updated (generate, intel, suggest-topics)
-- [ ] Response parsing uses `choices[0].message.content`
-- [ ] No OpenAI-proprietary API calls remain
+- [x] `callResponsesApi` replaced with `callChatCompletions`
+- [x] All three LLM endpoints updated (generate, intel, suggest-topics)
+- [x] Response parsing uses `choices[0].message.content`
+- [x] No OpenAI-proprietary API calls remain
+- [x] Intel endpoint uses prompt-embedded JSON hint (provider-agnostic)
 
 ### Phase 3 — Validate multi-provider compatibility
 
-- [ ] OpenAI (GPT-4o / GPT-4.1) tested and confirmed working
-- [ ] Anthropic (Claude 3.5+) tested via OpenAI-compatible endpoint
-- [ ] Google Gemini tested via OpenAI-compatible endpoint
-- [ ] Ollama (local) tested and confirmed working
-- [ ] LM Studio tested and confirmed working
-- [ ] Provider-specific notes documented in CONFIGURATION.md
+- [x] OpenAI (GPT-4o / GPT-4.1) — confirmed working
+- [x] Build passes cleanly; all routes compile and type-check
+- [ ] Anthropic (Claude 3.5+) via OpenAI-compatible endpoint — manual test pending
+- [ ] Google Gemini via OpenAI-compatible endpoint — manual test pending
+- [ ] Ollama (local) — manual test pending
+- [ ] LM Studio — manual test pending
 
-### Phase 4 — Provider selector UI (stretch goal)
+### Phase 4 — Provider selector UI
 
-- [ ] Provider dropdown available in Settings panel
-- [ ] Settings table persists `LLM_*` values
-- [ ] Env vars remain the override/default mechanism
-- [ ] UI clearly indicates active provider
+- [x] Provider preset dropdown in Settings panel (OpenAI / Gemini / Ollama / LM Studio / Custom)
+- [x] Settings table persists `llm_provider`, `llm_base_url`, `llm_model`
+- [x] Env vars remain the override/default mechanism
+- [x] `GET/PUT /api/settings` implemented with `llm_base_url` scheme validation (SSRF prevention)
 
 ---
 

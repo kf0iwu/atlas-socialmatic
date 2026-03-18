@@ -236,3 +236,60 @@ v0.9.0-alpha is the first public alpha of Atlas-Socialmatic, completing Sprints 
 ### Intended Audience
 
 Early testers comfortable with self-hosted Docker deployments and BYO API keys.
+
+---
+
+## Post-v0.9.0-alpha Stabilization — v0.9.1-alpha.0 (2026-03-18)
+
+Status: Complete
+
+Objective:
+Multi-provider expansion, security hardening, friendly error handling, and pre-release cleanup ahead of v1.0.
+
+### Multi-Provider Expansion (#63–#66)
+
+- Migrated all LLM calls from OpenAI Responses API (`/responses`) to `/v1/chat/completions`
+- Introduced `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL` env vars; `OPENAI_*` retained as fallbacks
+- `callChatCompletions()` with 3-attempt retry and `Retry-After` header support
+- Intel endpoint replaced structured output schema with prompt-embedded JSON hint (provider-agnostic)
+- Provider selector UI in settings panel: preset dropdown (OpenAI / Gemini / Ollama / LM Studio / Custom)
+- `GET/PUT /api/settings` implemented; `llm_provider`, `llm_base_url`, `llm_model` persisted to SQLite
+- `.env.example`, `docker-compose.yml`, and README updated for new variable schema
+
+### Security Audit (#67)
+
+- `PUT /api/settings` validates `llm_base_url` scheme (http/https only) — SSRF prevention
+- Settings error responses scrubbed of internal DB error details
+- README updated with multi-provider support matrix, provider setup notes, and Troubleshooting section
+
+### v1.0 Scope Finalization
+
+- Brand voice presets, template presets, Markdown/JSON export, split busy states, and collapsible panels formally deferred to v2.0
+- DECISIONS.md and ROADMAP.md updated; ACCEPTANCE_CRITERIA.md revised
+- AGPLv3 license headers added to all source files missing them (#60)
+
+### Friendly Error Handling (#68, fixes #54, #51)
+
+- `friendlyLlmError(status)` added to `provider.ts`: maps 401/403/429/5xx to user-facing messages
+- All three LLM routes: non-200 responses no longer forward raw provider text
+- JSON parse failures return `{ok: false, error: "..."}` at HTTP 502 (fixes #54)
+- Intel parse-failure path no longer leaks full provider response object (fixes #51)
+- Unhandled catch: generic friendly message replaces `{error, details: String(err)}`
+
+### Repo Cleanup
+
+- Removed Create Next App placeholder SVGs from `public/` (#62)
+- Removed stale `bug_preview_requires_intel.md` from repo root (#47)
+- Fixed backslash escape artifacts in `_docs/ACCOUNTING.md` (#61)
+- Fixed `app/layout.tsx` boilerplate metadata (#49)
+- CLAUDE.md updated: env vars, dark mode note, intel description, settings route (#56)
+- `package.json` version aligned with release tag (#58)
+- Rate limiter in-memory limitation and shared bucket behavior documented in README (#55)
+- 10 previously-resolved issues formally closed (#49–#51, #53–#60)
+
+### Known Remaining Limitations (v0.9.1-alpha)
+
+- Rate limiter shared "unknown" bucket on direct access without reverse proxy (#52, deferred to v2.0)
+- Multi-provider manual validation (Ollama, Gemini, Anthropic) pending
+- Screenshots not yet captured (#38)
+- v1.0 documentation files (DEPLOYMENT.md, CONFIGURATION.md, USER_GUIDE.md, TROUBLESHOOTING.md) not yet written
