@@ -1,8 +1,8 @@
-\# Atlas-Socialmatic Accounting Log
+# Atlas-Socialmatic Accounting Log
 
 
 
-\## Sprint 1
+## Sprint 1
 
 Hours: 32
 
@@ -12,7 +12,7 @@ Imputed Cost (@$75/hr): $2,400
 
 
 
-\## Sprint 2
+## Sprint 2
 
 Hours: 41
 
@@ -22,7 +22,7 @@ Imputed Cost: $3,075
 
 
 
-\## Sprint 3
+## Sprint 3
 
 Hours: 29
 
@@ -32,7 +32,7 @@ Imputed Cost: $2,175
 
 
 
-\## Total Investment So Far
+## Total Investment So Far
 
 Hard Costs: $18
 
