@@ -87,9 +87,11 @@ features and clean deployment.
 - Centralized prompt-building modules
   - No prompt logic duplicated across endpoints
   - Consistent injection of tone, audience, template, and voice
-- Basic provider abstraction:
-  - OpenAI support
-  - OpenAI-compatible local endpoint support
+- Multi-provider support via `/v1/chat/completions`:
+  - OpenAI (GPT-4o, GPT-4.1, etc.)
+  - Anthropic (Claude 3.5+)
+  - Google Gemini (via OpenAI-compatible endpoint)
+  - Local models (Ollama, LM Studio, any `/v1/chat/completions` compatible server)
 - Provider configured via environment variables only (no UI switching in v1)
 
 ### Deployment
@@ -137,7 +139,6 @@ self-hosted compatibility.
 - Series mode (multi-post thematic progression)
 - Thread mode for X
 - Blog outline mode with selective section expansion
-- Provider abstraction expansion (additional providers)
 - Public domain image integration
 - Optional AI image generation (self-hosted friendly)
 - Knowledge context mode (user-defined persistent context)

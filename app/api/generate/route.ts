@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 
-import { callResponsesApi } from "@/lib/llm/provider";
+import { callChatCompletions, resolveLlmConfig } from "@/lib/llm/provider";
 import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
@@ -73,10 +73,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Topic is required." }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const { apiKey } = resolveLlmConfig();
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Server missing OPENAI_API_KEY" },
+        { error: "Server missing LLM_API_KEY (or OPENAI_API_KEY)" },
         { status: 500 }
       );
     }
@@ -178,7 +178,9 @@ Important:
 - No code fences. No extra keys.
 `.trim();
 
-    const resp = await callResponsesApi(apiKey, { input: prompt });
+    const resp = await callChatCompletions(
+      [{ role: "user", content: prompt }],
+    );
 
     if (!resp.ok) {
       const errText = await resp.text();
@@ -189,17 +191,7 @@ Important:
     }
 
     const data = await resp.json();
-
-    // Attempt to extract unified text; fallback if shape differs.
-    const outputText: string =
-      data.output_text ??
-      (Array.isArray(data.output)
-        ? data.output
-            .flatMap((o: { content?: unknown[] }) => o?.content ?? [])
-            .map((c: { text?: string }) => c?.text ?? "")
-            .join("")
-        : "") ??
-      "";
+    const outputText: string = data.choices?.[0]?.message?.content ?? "";
 
     const cleaned = stripCodeFences(outputText);
 

@@ -12,7 +12,8 @@ versus still required before v1.0 is tagged.
 | Area | v0.9.0-alpha | Remaining for v1.0 |
 |---|---|---|
 | Core engine stability | Complete | Friendly errors for invalid key / rate limit / timeout |
-| Provider support | Complete | — |
+| Provider support — OpenAI | Complete | — |
+| Provider support — Multi-provider | Not started | Required for v1.0 |
 | Persistence (SQLite, drafts, settings) | Complete | — |
 | Character counters | Complete | — |
 | Hooks + hashtag intelligence | Complete | — |
@@ -55,10 +56,13 @@ versus still required before v1.0 is tagged.
 
 ## Provider Support
 
-- OpenAI provider works
-- OpenAI-compatible local endpoint works
+- OpenAI provider works (`/v1/chat/completions`)
+- OpenAI-compatible local endpoint works (Ollama, LM Studio)
+- Anthropic provider works via `/v1/chat/completions`
+- Google Gemini works via OpenAI-compatible endpoint
 - Provider selection configurable via environment variables only
 - No provider configuration required inside container
+- `.env.example` documents all `LLM_*` variables
 
 ---
 
@@ -132,6 +136,41 @@ versus still required before v1.0 is tagged.
 - License file included
 - Version tagged as v1.0.0
 - Changelog entry created
+
+---
+
+## Multi-Provider Support
+
+### Phase 1 — Environment variable schema overhaul
+
+- [ ] `OPENAI_BASE_URL` and `OPENAI_MODEL` removed from codebase
+- [ ] `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` introduced
+- [ ] `.env.example` updated with all new variables
+- [ ] `docker-compose.yml` updated to use new variables
+- [ ] README and CONFIGURATION.md document new variable schema
+
+### Phase 2 — Migrate provider.ts to /v1/chat/completions
+
+- [ ] `callResponsesApi` replaced with `callChatCompletions`
+- [ ] All three LLM endpoints updated (generate, intel, suggest-topics)
+- [ ] Response parsing uses `choices[0].message.content`
+- [ ] No OpenAI-proprietary API calls remain
+
+### Phase 3 — Validate multi-provider compatibility
+
+- [ ] OpenAI (GPT-4o / GPT-4.1) tested and confirmed working
+- [ ] Anthropic (Claude 3.5+) tested via OpenAI-compatible endpoint
+- [ ] Google Gemini tested via OpenAI-compatible endpoint
+- [ ] Ollama (local) tested and confirmed working
+- [ ] LM Studio tested and confirmed working
+- [ ] Provider-specific notes documented in CONFIGURATION.md
+
+### Phase 4 — Provider selector UI (stretch goal)
+
+- [ ] Provider dropdown available in Settings panel
+- [ ] Settings table persists `LLM_*` values
+- [ ] Env vars remain the override/default mechanism
+- [ ] UI clearly indicates active provider
 
 ---
 

@@ -383,6 +383,59 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
 
   const [intelBusy, setIntelBusy] = useState(false);
 
+  // --- Provider settings (Issue #66) ---
+  type ProviderPreset = "openai" | "gemini" | "ollama" | "lmstudio" | "custom";
+  const PROVIDER_PRESETS: Record<ProviderPreset, { label: string; baseUrl: string; model: string }> = {
+    openai:   { label: "OpenAI",        baseUrl: "https://api.openai.com/v1",                               model: "gpt-4.1-mini" },
+    gemini:   { label: "Google Gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.0-flash" },
+    ollama:   { label: "Ollama (local)", baseUrl: "http://localhost:11434/v1",                              model: "llama3" },
+    lmstudio: { label: "LM Studio",     baseUrl: "http://localhost:1234/v1",                                model: "local-model" },
+    custom:   { label: "Custom",        baseUrl: "",                                                        model: "" },
+  };
+  const [providerPreset, setProviderPreset] = useState<ProviderPreset>("openai");
+  const [providerBaseUrl, setProviderBaseUrl] = useState("");
+  const [providerModel, setProviderModel] = useState("");
+  const [providerEnv, setProviderEnv] = useState({ api_key_set: false, base_url_set: false, model_set: false });
+  const [providerSaving, setProviderSaving] = useState(false);
+  const [showProvider, setShowProvider] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        const s = d?.settings;
+        const e = d?.env ?? {};
+        setProviderEnv(e);
+        if (s?.llm_base_url) setProviderBaseUrl(s.llm_base_url);
+        if (s?.llm_model) setProviderModel(s.llm_model);
+        if (s?.llm_provider && Object.keys(PROVIDER_PRESETS).includes(s.llm_provider)) {
+          setProviderPreset(s.llm_provider as ProviderPreset);
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function saveProviderSettings() {
+    setProviderSaving(true);
+    try {
+      await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          llm_provider: providerPreset,
+          llm_base_url: providerBaseUrl || null,
+          llm_model: providerModel || null,
+        }),
+      });
+      addToast("Provider settings saved");
+    } catch {
+      addToast("Failed to save provider settings", "error");
+    } finally {
+      setProviderSaving(false);
+    }
+  }
+
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   function addToast(message: string, kind: Toast["kind"] = "success") {
@@ -1232,6 +1285,87 @@ const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
               )}
             </div>
           )}
+
+          {/* Provider Configuration (Issue #66) */}
+          <div className="space-y-2 pt-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold dark:text-slate-100">Provider</h2>
+              <button
+                className="text-xs border border-slate-300 rounded px-2 py-1 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                onClick={() => setShowProvider((v) => !v)}
+                type="button"
+              >
+                {showProvider ? "Hide" : "Configure"}
+              </button>
+            </div>
+
+            {showProvider && (
+              <div className="border border-slate-200 rounded-xl bg-white dark:bg-slate-900 p-3 space-y-3 dark:border-slate-700">
+                {(providerEnv.base_url_set || providerEnv.model_set) && (
+                  <div className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded p-2">
+                    Env var override active — {[
+                      providerEnv.base_url_set && "LLM_BASE_URL",
+                      providerEnv.model_set && "LLM_MODEL",
+                    ].filter(Boolean).join(", ")} set and takes precedence.
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium dark:text-slate-300">Provider Preset</label>
+                  <select
+                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    value={providerPreset}
+                    onChange={(e) => {
+                      const p = e.target.value as ProviderPreset;
+                      setProviderPreset(p);
+                      if (p !== "custom") {
+                        setProviderBaseUrl(PROVIDER_PRESETS[p].baseUrl);
+                        setProviderModel(PROVIDER_PRESETS[p].model);
+                      }
+                    }}
+                  >
+                    {(Object.keys(PROVIDER_PRESETS) as ProviderPreset[]).map((k) => (
+                      <option key={k} value={k}>{PROVIDER_PRESETS[k].label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium dark:text-slate-300">Base URL</label>
+                  <input
+                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    value={providerBaseUrl}
+                    onChange={(e) => { setProviderBaseUrl(e.target.value); setProviderPreset("custom"); }}
+                    placeholder="https://api.openai.com/v1"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium dark:text-slate-300">Model</label>
+                  <input
+                    className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    value={providerModel}
+                    onChange={(e) => { setProviderModel(e.target.value); setProviderPreset("custom"); }}
+                    placeholder="gpt-4.1-mini"
+                  />
+                </div>
+
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  API key is set via <code>LLM_API_KEY</code> env var only — never stored here.
+                  {providerEnv.api_key_set ? " ✓ Key detected." : " ⚠ No key detected."}
+                </div>
+
+                <button
+                  className="w-full text-sm border border-slate-300 rounded px-3 py-1.5 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800 dark:text-slate-200"
+                  onClick={saveProviderSettings}
+                  disabled={providerSaving}
+                  type="button"
+                >
+                  {providerSaving ? "Saving…" : "Save Provider Settings"}
+                </button>
+              </div>
+            )}
+          </div>
         </aside>
       </div>
 

@@ -35,7 +35,10 @@ CREATE TABLE IF NOT EXISTS settings (
   default_platforms    TEXT    NOT NULL,
   default_tone         TEXT,
   default_audience     TEXT,
-  default_length_tier  TEXT
+  default_length_tier  TEXT,
+  llm_provider         TEXT,
+  llm_base_url         TEXT,
+  llm_model            TEXT
 );
 `;
 
@@ -55,6 +58,15 @@ function initDb(db: AtlasDb) {
   db.pragma("journal_mode = WAL");
 
   db.exec(SCHEMA_SQL);
+
+  // Migrations for existing installs — silently skip if column already exists
+  for (const sql of [
+    "ALTER TABLE settings ADD COLUMN llm_provider TEXT",
+    "ALTER TABLE settings ADD COLUMN llm_base_url TEXT",
+    "ALTER TABLE settings ADD COLUMN llm_model TEXT",
+  ]) {
+    try { db.exec(sql); } catch { /* column already exists */ }
+  }
 
   const now = Date.now();
   const row = db.prepare("SELECT id FROM settings WHERE id = 1").get();

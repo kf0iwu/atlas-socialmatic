@@ -240,6 +240,49 @@ Class-based approach allows the user's preference to persist and
 override the OS setting independently.
 
 
+## 2026-03-17 — Switch from OpenAI Responses API to /v1/chat/completions
+
+The current provider (`lib/llm/provider.ts`) calls the OpenAI Responses API
+(`/responses` endpoint). This endpoint is OpenAI-proprietary and not supported
+by Anthropic, Google Gemini, Ollama, LM Studio, or most other providers.
+
+### Decision
+
+Migrate all LLM calls to the `/v1/chat/completions` endpoint, which is the
+industry-standard interface supported by all major providers and local model
+servers.
+
+### Implementation Plan (4 phases)
+
+Phase 1 — Environment variable schema overhaul:
+- Remove `OPENAI_BASE_URL` and `OPENAI_MODEL`
+- Introduce `LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`
+- Update `.env.example`, Docker Compose, and documentation
+
+Phase 2 — Migrate provider.ts to /v1/chat/completions:
+- Replace `callResponsesApi` with `callChatCompletions`
+- Update all three endpoints: generate, intel, suggest-topics
+- Parse `choices[0].message.content` instead of `output_text`
+
+Phase 3 — Validate multi-provider compatibility:
+- Test with Anthropic (Claude 3.5+) via OpenAI-compatible endpoint
+- Test with Google Gemini via OpenAI-compatible endpoint
+- Test with Ollama and LM Studio local models
+- Document provider-specific quirks
+
+Phase 4 — Provider selector UI (optional, v1 stretch):
+- Allow provider selection from the Settings panel
+- Write `LLM_*` values to settings table
+- Env vars remain the override/default mechanism
+
+### Rationale
+
+- `/v1/chat/completions` is supported by every major provider
+- Enables Anthropic, Gemini, and local models without code changes
+- Removes OpenAI API format lock-in
+- Aligns with the v1.0 multi-provider goal
+
+
 ## 2026-03-17 — Light mode uses neutral slate palette (not pure black/white)
 
 Pure black (`bg-black`) buttons and white surfaces looked harsh and
@@ -259,3 +302,25 @@ Reason:
 Pure black/white feels unrefined. Slate tones are neutral and sharp
 without being harsh. Setting `text-slate-900` on `<main>` also fixes
 CSS variable inheritance unreliability inside Tailwind-styled containers.
+
+---
+
+## 2026-03-17 — Switch from OpenAI Responses API to /v1/chat/completions
+
+### Context
+Atlas-Socialmatic v0.9.0-alpha.0 called OpenAI's proprietary Responses API (`/responses`) instead of the industry-standard Chat Completions endpoint (`/v1/chat/completions`). This blocked compatibility with Anthropic, Google Gemini, Ollama, LM Studio, and any `/v1/chat/completions`-compatible provider.
+
+### Decision
+Migrate all LLM calls (generate, intel, suggest-topics) to `/v1/chat/completions`. Structured outputs (intel endpoint) are replaced with prompt-embedded JSON schema instructions to remain provider-agnostic.
+
+### 4-Phase Plan
+- **Phase 1** (#63): Environment variable schema overhaul (`LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`) with `OPENAI_*` backward compatibility aliases.
+- **Phase 2** (#64): Migrate `provider.ts` and all three route handlers to `/v1/chat/completions`; drop Responses API structured output fields.
+- **Phase 3** (#65): Validate against OpenAI, Anthropic (via proxy), Google Gemini (OpenAI-compat), and Ollama.
+- **Phase 4** (#66): Provider selector UI in settings panel; settings table persists `llm_provider`, `llm_base_url`, `llm_model`.
+
+### Rationale
+- `/v1/chat/completions` is the de-facto standard for self-hosted and multi-provider LLM APIs.
+- Removes vendor lock-in to OpenAI Responses API.
+- Enables local model support (Ollama, LM Studio) without modifications.
+- Aligns with v1.0 roadmap goal for multi-provider support.

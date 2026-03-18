@@ -16,7 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { callResponsesApi } from "@/lib/llm/provider";
+import { callChatCompletions, resolveLlmConfig } from "@/lib/llm/provider";
 import { acquireOrThrow, isRateLimitError, release } from "@/lib/llm/rateLimit";
 import { NextResponse } from "next/server";
 
@@ -51,69 +51,30 @@ function pickMixedLine(hashtags: {
   return [...hashtags.broad, ...hashtags.niche, ...hashtags.longtail].join(" ");
 }
 
-// Build a strict JSON schema based on which outputs were requested.
-// With strict mode, only schema-allowed fields will appear.
-function buildSchema(opts: {
+// Build a JSON structure hint to embed in the system prompt.
+// Provider-agnostic alternative to Responses API structured outputs.
+function buildJsonStructureHint(opts: {
   generateHooks: boolean;
   generateHashtags: boolean;
   platforms: Platform[];
-}) {
-  const metaProps: Record<string, unknown> = {};
+}): string {
+  const metaFields: string[] = [];
 
   if (opts.generateHooks) {
-    metaProps.linkedin_hooks = {
-      type: "array",
-      items: { type: "string" },
-      description: "LinkedIn opening hooks (1–2 lines each).",
-    };
+    metaFields.push(`    "linkedin_hooks": ["hook string", ...]`);
   }
 
   if (opts.generateHashtags) {
-    const perPlatform = {
-      type: "object",
-      properties: {
-        broad: { type: "array", items: { type: "string" } },
-        niche: { type: "array", items: { type: "string" } },
-        longtail: { type: "array", items: { type: "string" } },
-        mixed_line: {
-          type: "string",
-          description: "Single copy/paste line blending broad/niche/longtail.",
-        },
-      },
-      required: ["broad", "niche", "longtail", "mixed_line"],
-      additionalProperties: false,
-    };
-
-    const hashtagPacksProps: Record<string, unknown> = {};
-    for (const p of opts.platforms) hashtagPacksProps[p] = perPlatform;
-
-    metaProps.hashtag_packs = {
-      type: "object",
-      properties: hashtagPacksProps,
-      required: opts.platforms, // ensure requested platforms exist
-      additionalProperties: false, // only include requested platforms
-    };
+    const platformEntries = opts.platforms
+      .map(
+        (p) =>
+          `      "${p}": {\n        "broad": ["#tag", ...],\n        "niche": ["#tag", ...],\n        "longtail": ["#tag", ...],\n        "mixed_line": "#tag1 #tag2 ..."\n      }`,
+      )
+      .join(",\n");
+    metaFields.push(`    "hashtag_packs": {\n${platformEntries}\n    }`);
   }
 
-  const metaRequired = Object.keys(metaProps);
-
-  return {
-    name: "atlas_socialmatic_intel",
-    strict: true,
-    schema: {
-      type: "object",
-      properties: {
-        meta: {
-          type: "object",
-          properties: metaProps,
-          required: metaRequired,
-          additionalProperties: false,
-        },
-      },
-      required: ["meta"],
-      additionalProperties: false,
-    },
-  };
+  return `{\n  "meta": {\n${metaFields.join(",\n")}\n  }\n}`;
 }
 
 type HashtagPackResult = { broad: string[]; niche: string[]; longtail: string[]; mixed_line?: string };
@@ -130,10 +91,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Topic is required." }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const { apiKey } = resolveLlmConfig();
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Server missing OPENAI_API_KEY" },
+        { error: "Server missing LLM_API_KEY (or OPENAI_API_KEY)" },
         { status: 500 }
       );
     }
@@ -206,16 +167,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const schema = buildSchema({ generateHooks, generateHashtags, platforms });
+    const jsonHint = buildJsonStructureHint({ generateHooks, generateHashtags, platforms });
 
-    const resp = await callResponsesApi(apiKey, {
-      store: false,
-      temperature: 0.4,
-      input: [
+    const resp = await callChatCompletions(
+      [
         {
           role: "system",
-          content:
+          content: [
             "You are Atlas-Socialmatic Intelligence. You generate strategic add-ons for social writing.",
+            "",
+            "Respond ONLY with valid JSON matching this exact structure. No code fences. No explanation outside the JSON object.",
+            jsonHint,
+          ].join("\n"),
         },
         {
           role: "user",
@@ -228,14 +191,8 @@ export async function POST(req: Request) {
           ].join("\n"),
         },
       ],
-      // Structured Outputs (Responses API uses text.format)
-      text: {
-        format: {
-          type: "json_schema",
-          ...schema,
-        },
-      },
-    });
+      { temperature: 0.4 },
+    );
 
     if (!resp.ok) {
       const errText = await resp.text();
@@ -246,18 +203,12 @@ export async function POST(req: Request) {
     }
 
     const data = await resp.json();
-
-    // In strict schema mode, model output should be valid JSON in output_text.
-    // But we'll still defensively handle weird cases.
-    const outputText: string =
-      data.output_text ??
-      (Array.isArray(data.output)
-        ? data.output
-            .flatMap((o: { content?: unknown[] }) => o?.content ?? [])
-            .map((c: { text?: string; content?: string }) => c?.text ?? c?.content ?? "")
-            .join("")
-        : "") ??
-      "";
+    const rawContent: string = data.choices?.[0]?.message?.content ?? "";
+    // Strip code fences defensively — some providers wrap JSON in ```json blocks
+    const outputText = rawContent
+      .replace(/^\s*```(?:json)?\s*/i, "")
+      .replace(/\s*```\s*$/i, "")
+      .trim();
 
     let parsed: IntelParsed;
     try {

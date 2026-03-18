@@ -38,6 +38,13 @@ LLM integration:
 
     lib/llm/provider.ts
 
+    Currently calls OpenAI Responses API (/responses).
+    Planned migration to /v1/chat/completions for multi-provider support:
+    - OpenAI
+    - Anthropic
+    - Google Gemini
+    - Ollama / LM Studio (local)
+
 Rate limiting:
 
     lib/llm/rateLimit.ts
@@ -52,14 +59,14 @@ Draft storage:
 
 The project is currently in:
 
-Sprint 5 (pre-v1.0 stabilization)
+Post-Sprint 6 / v0.9.0-alpha.0 released (2026-03-17)
 
-Remaining Sprint 5 issues include:
+Active focus: Multi-provider expansion (Phases 1–4)
 
-- Retry failed LLM requests
-- API rate limiting
-- prompt quality improvements
-- dark mode implementation
+- Phase 1: Environment variable schema overhaul (LLM_* vars)
+- Phase 2: Migrate provider.ts to /v1/chat/completions
+- Phase 3: Validate Anthropic, Gemini, Ollama integration
+- Phase 4: Provider selector UI (stretch goal)
 
 ---
 
@@ -91,10 +98,11 @@ Key principles:
 
 Important rules:
 
-- avoid large refactors during Sprint 5
+- avoid large refactors unrelated to multi-provider migration
 - prioritize stability before v1.0
 - backend responses must remain stable
 - LLM output must be validated
+- do not introduce authentication, multi-user support, or remote databases in v1
 
 ---
 
@@ -102,6 +110,6 @@ Important rules:
 
 Near-term goals:
 
-Sprint 5 completion
+Multi-provider expansion Phases 1–4
 v1.0 release stabilization
 post-v1 improvements to content quality

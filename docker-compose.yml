@@ -4,9 +4,14 @@ services:
     ports:
       - "3000:3000"
     environment:
+      # LLM_* vars (preferred)
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL=${LLM_MODEL}
+      # OPENAI_* aliases (deprecated, still accepted as fallbacks)
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4.1-mini}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - OPENAI_MODEL=${OPENAI_MODEL}
     volumes:
       - ./data:/app/data
     restart: unless-stopped
