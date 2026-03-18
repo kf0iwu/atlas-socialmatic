@@ -41,7 +41,7 @@ git clone https://github.com/kf0iwu/atlas-socialmatic.git
 cd atlas-socialmatic
 
 cp .env.example .env.local
-# Edit .env.local and set OPENAI_API_KEY
+# Edit .env.local and set LLM_API_KEY
 
 npm install
 npm run dev
@@ -57,11 +57,43 @@ The SQLite database is auto-created at `data/atlas.db` on first run.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `OPENAI_API_KEY` | Yes | — | API key for your OpenAI or compatible provider |
-| `OPENAI_MODEL` | No | `gpt-4.1-mini` | Model to use for all generation endpoints |
-| `OPENAI_BASE_URL` | No | `https://api.openai.com/v1` | Base URL for any OpenAI-compatible endpoint (no trailing slash) |
+| `LLM_API_KEY` | Yes | — | API key for your LLM provider |
+| `LLM_BASE_URL` | No | `https://api.openai.com/v1` | Base URL for any `/v1/chat/completions`-compatible endpoint (no trailing slash) |
+| `LLM_MODEL` | No | `gpt-4.1-mini` | Model identifier passed to the provider |
 
-To use a local model (e.g. Ollama, LM Studio), set `OPENAI_BASE_URL` to your local endpoint and `OPENAI_MODEL` to the model name your server exposes.
+> **Backward compatibility:** `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL` are still accepted as fallbacks — existing `.env.local` files keep working without changes.
+
+---
+
+## Provider Support
+
+Atlas-Socialmatic calls the standard `/v1/chat/completions` endpoint, so any provider that implements that interface works without modification.
+
+| Provider | `LLM_BASE_URL` | Example `LLM_MODEL` |
+|---|---|---|
+| **OpenAI** (default) | `https://api.openai.com/v1` | `gpt-4.1-mini` |
+| **Google Gemini** | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.0-flash` |
+| **Anthropic** (via proxy) | Your proxy's `/v1` endpoint | `claude-opus-4-6` |
+| **Ollama** (local) | `http://localhost:11434/v1` | your model name (e.g. `llama3`) |
+| **LM Studio** (local) | `http://localhost:1234/v1` | your loaded model name |
+
+**Note on Anthropic:** Anthropic's native API does not expose `/v1/chat/completions`. Route requests through a compatible proxy (e.g. [LiteLLM](https://github.com/BerriAI/litellm)) and point `LLM_BASE_URL` at it.
+
+The provider can also be configured from the sidebar UI — open the **Provider** panel, pick a preset, and save. Env vars always take precedence over saved settings.
+
+### Troubleshooting
+
+**`LLM_BASE_URL` formatting:**
+- Include the full path to the API root, including the required version segment. Do not include a trailing slash.
+- Correct: `http://localhost:11434/v1`
+- Incorrect: `http://localhost:11434/` or `http://localhost:11434`
+
+**Local models inside Docker:**
+- `localhost` inside the container refers to the container itself, not your host machine. Use the host's LAN IP or — on Docker Desktop (Mac/Windows) — `host.docker.internal`.
+- Example: `LLM_BASE_URL=http://host.docker.internal:11434/v1`
+
+**Model name mismatch:**
+- Providers require exact model names. For Ollama, run `ollama list` to see available names and set `LLM_MODEL` to match exactly.
 
 ---
 
@@ -72,7 +104,7 @@ To use a local model (e.g. Ollama, LM Studio), set `OPENAI_BASE_URL` to your loc
 ```bash
 # 1. Copy the example env file and fill in your API key
 cp .env.example .env
-# Edit .env — set OPENAI_API_KEY at minimum
+# Edit .env — set LLM_API_KEY at minimum
 
 # 2. Build and start
 docker compose up -d
@@ -93,7 +125,7 @@ docker compose logs -f        # Tail logs
 
 **Port:** defaults to `3000`. To change it, update the `ports` mapping in `docker-compose.yml`.
 
-All three env vars from `.env.example` are supported — see [Environment Variables](#environment-variables) above.
+See [Environment Variables](#environment-variables) and [Provider Support](#provider-support) above for the full variable reference.
 
 Tested on: Docker on Unraid, Docker on Ubuntu/Debian.
 
@@ -117,7 +149,7 @@ git clone https://github.com/kf0iwu/atlas-socialmatic.git .
 cp .env.example .env
 ```
 
-Open `.env` in the Unraid file manager or with `vi .env` in the terminal. Set `OPENAI_API_KEY` to your API key. Save and close.
+Open `.env` in the Unraid file manager or with `vi .env` in the terminal. Set `LLM_API_KEY` to your API key. Save and close.
 
 **3. Build and start:**
 
@@ -175,7 +207,7 @@ atlas-socialmatic/
 | Language | TypeScript |
 | UI | React 19, Tailwind CSS v4 |
 | Database | SQLite via `better-sqlite3` |
-| AI | OpenAI API (or OpenAI-compatible endpoint) |
+| AI | Any `/v1/chat/completions`-compatible provider (OpenAI, Gemini, Ollama, LM Studio, and others) |
 
 ### Key Design Decisions
 
@@ -232,7 +264,7 @@ Planned additions: brand voice presets, template presets, export to Markdown/JSO
 
 ### v2.0 — Workflow Acceleration
 
-Content planner, thread mode for X, blog outline mode, draft history versioning, history search/filtering, additional AI provider support.
+Content planner, thread mode for X, blog outline mode, draft history versioning, history search/filtering.
 
 See [_docs/ROADMAP.md](_docs/ROADMAP.md) for full scope details.
 

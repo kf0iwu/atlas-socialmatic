@@ -60,9 +60,9 @@ export async function GET() {
     };
 
     return NextResponse.json({ settings, env });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
-      { error: "Failed to load settings", details: String(err) },
+      { error: "Failed to load settings" },
       { status: 500 },
     );
   }
@@ -79,6 +79,17 @@ export async function PUT(req: Request) {
       default_audience?: string | null;
       default_length_tier?: string | null;
     };
+
+    // Validate base URL — must be http/https to prevent SSRF
+    if (body.llm_base_url) {
+      let parsed: URL;
+      try { parsed = new URL(body.llm_base_url); } catch {
+        return NextResponse.json({ error: "llm_base_url is not a valid URL" }, { status: 400 });
+      }
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return NextResponse.json({ error: "llm_base_url must use http or https" }, { status: 400 });
+      }
+    }
 
     const db = getDb();
     const now = Date.now();
@@ -99,9 +110,9 @@ export async function PUT(req: Request) {
     db.prepare(`UPDATE settings SET ${updates.join(", ")} WHERE id = 1`).run(...params);
 
     return NextResponse.json({ ok: true });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
-      { error: "Failed to save settings", details: String(err) },
+      { error: "Failed to save settings" },
       { status: 500 },
     );
   }
