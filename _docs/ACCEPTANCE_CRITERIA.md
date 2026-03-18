@@ -23,18 +23,18 @@ versus still required before v1.0 is tagged.
 | Copy-all | Complete | — |
 | Overwrite confirmation | Complete | — |
 | Toast notifications | Complete | — |
-| Brand voice presets | Not started | Required for v1.0 |
-| Template presets | Not started | Required for v1.0 |
-| Markdown / JSON export | Not started | Required for v1.0 |
-| Split busy states (per-platform) | Not started | Required for v1.0 |
-| Collapsible panels | Not started | Required for v1.0 |
+| Brand voice presets | Not started | Deferred to v2.0 |
+| Template presets | Not started | Deferred to v2.0 |
+| Markdown / JSON export (file download) | Not started | Deferred to v2.0 |
+| Split busy states (per-platform) | Not started | Deferred to v2.0 |
+| Collapsible panels | Not started | Deferred to v2.0 |
 | Docker (Dockerfile + Compose) | In progress (#36) | Required for v1.0 |
 | README | Complete | — |
 | DEPLOYMENT.md | Not started | Required for v1.0 |
 | CONFIGURATION.md | Not started | Required for v1.0 |
 | USER_GUIDE.md | Not started | Required for v1.0 |
 | TROUBLESHOOTING.md | Not started | Required for v1.0 |
-| LICENSE file | Not started | Required for v1.0 |
+| LICENSE file | Complete | — |
 | v1.0.0 version tag | Not started | Required for v1.0 |
 
 ---
@@ -83,21 +83,14 @@ versus still required before v1.0 is tagged.
 
 ## Workflow Enhancements
 
-- Brand voice presets implemented
-- Custom voice profiles implemented
-- Template presets available
-- Custom templates savable
-- Markdown export works
-- JSON export works
 - Copy-all functionality works
 - Overwrite confirmation prevents accidental loss
+- Blog drafts produce copyable markdown via the Copy button; file download export is a v2.0 goal
 
 ---
 
 ## UX Quality
 
-- Busy states split correctly
-- Panels are collapsible
 - Toast notifications provide clear system feedback
 - No obvious UI confusion or broken states
 

@@ -324,3 +324,36 @@ Migrate all LLM calls (generate, intel, suggest-topics) to `/v1/chat/completions
 - Removes vendor lock-in to OpenAI Responses API.
 - Enables local model support (Ollama, LM Studio) without modifications.
 - Aligns with v1.0 roadmap goal for multi-provider support.
+
+---
+
+## 2026-03-18 — v1.0 scope realignment: defer non-essential features
+
+### Context
+Post-alpha review identified features originally targeted for v1.0 that introduce
+development risk without being critical to the core value proposition of a stable,
+self-hosted content generation engine.
+
+### Decision
+The following features are deferred to v2.0:
+- **Brand voice presets** and custom voice profiles
+- **Template presets** and custom template saving
+- **Export to Markdown / JSON (file downloads)** — blog drafts already produce
+  copyable markdown via the Copy button; a dedicated download adds UI complexity
+  without blocking real usage
+- **Split busy states** (per-platform hooksBusy / hashtagsBusy)
+- **Collapsible UI panels**
+
+### v1.0 Focus
+v1.0 is now scoped to:
+1. Core engine stability (multi-platform generation, intelligence, topic suggestions)
+2. Multi-provider support via `/v1/chat/completions`
+3. Draft persistence (SQLite)
+4. Clean deployment (Docker, env-var configuration)
+5. Complete licensing and documentation
+
+### Rationale
+- Scope reduction lowers regression risk before the v1.0 tag
+- The deferred features are additive UX improvements, not core functionality
+- Blog copy-paste satisfies the export need for v1.0 without file I/O complexity
+- A tighter scope enables a higher-quality, faster v1.0 release

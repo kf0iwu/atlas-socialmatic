@@ -61,18 +61,11 @@ features and clean deployment.
 
 ### Workflow Enhancements
 
-- Brand voice presets
-- Custom voice profiles
-- Template presets
-- Custom template saving
-- Export to Markdown
-- Export to JSON
 - Copy-all functionality
+- Blog drafts produce copyable markdown; file download export deferred to v2.0
 
 ### UX Quality
 
-- Split busy states (hooksBusy / hashtagsBusy)
-- Collapsible UI panels
 - Generate missing platforms only
 - Overwrite confirmation for full regeneration
 - Toast notifications for system feedback
@@ -109,6 +102,11 @@ features and clean deployment.
 
 ## Explicitly Excluded from v1.0
 
+- Brand voice presets and custom voice profiles
+- Template presets and custom template saving
+- Export to Markdown / JSON (file downloads)
+- Split busy states (per-platform)
+- Collapsible UI panels
 - Social account linking (OAuth)
 - Automatic post scheduling
 - Auto-posting to platforms
@@ -135,6 +133,11 @@ self-hosted compatibility.
 
 ## Candidate Scope (Subject to v1 Feedback)
 
+- Brand voice presets and custom voice profiles
+- Template presets and custom template saving
+- Export to Markdown / JSON (file downloads)
+- Split busy states (per-platform)
+- Collapsible UI panels
 - Calendar-based content planner (no auto-posting)
 - Series mode (multi-post thematic progression)
 - Thread mode for X
