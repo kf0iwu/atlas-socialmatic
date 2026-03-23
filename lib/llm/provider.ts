@@ -95,18 +95,24 @@ export async function callChatCompletions(
   const body: Record<string, unknown> = { model, messages };
   if (opts.temperature !== undefined) body.temperature = opts.temperature;
 
+  const isGoogleAI = baseUrl.includes("generativelanguage.googleapis.com");
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (isGoogleAI) {
+    headers["x-goog-api-key"] = apiKey;
+  } else {
+    headers["Authorization"] = `Bearer ${apiKey}`;
+  }
+
   const init: RequestInit = {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
+    headers,
     body: JSON.stringify(body),
   };
 
   let lastError: unknown;
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     try {
+      console.log(`[llm] POST ${url} model=${model}`);
       const resp = await fetch(url, init);
       if (!isTransientStatus(resp.status) || attempt === MAX_ATTEMPTS - 1) {
         return resp;

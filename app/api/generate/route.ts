@@ -183,6 +183,8 @@ Important:
     );
 
     if (!resp.ok) {
+      const errBody = await resp.text().catch(() => "(unreadable)");
+      console.error(`[generate] LLM error ${resp.status}:`, errBody);
       return NextResponse.json(
         { ok: false, error: friendlyLlmError(resp.status) },
         { status: 502 }
