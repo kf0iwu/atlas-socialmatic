@@ -2,7 +2,7 @@
 
 **Self-hosted AI content generator for social media posts and blog drafts.**
 
-Atlas-Socialmatic helps practical professionals, small businesses, and builders produce platform-optimized content without friction. Bring your own OpenAI (or compatible) API key — no SaaS, no subscriptions, no lock-in.
+Atlas-Socialmatic helps practical professionals, small businesses, and builders produce platform-optimized content without friction. Bring your own OpenAI, or other LLM API key, even a self-hosted one.  No SaaS, no subscriptions, no lock-in.
 
 ---
 
