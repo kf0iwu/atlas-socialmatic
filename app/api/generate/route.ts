@@ -33,6 +33,38 @@ type ReqBody = {
   lengths?: Record<string, LengthTier>;
 };
 
+function extractPlatformValues(s: string, platforms: string[]): Record<string, unknown> | null {
+  const result: Record<string, unknown> = {};
+  for (const p of platforms) {
+    const keyIdx = s.indexOf(`"${p}"`);
+    if (keyIdx < 0) continue;
+    const colonIdx = s.indexOf(':', keyIdx + p.length + 2);
+    if (colonIdx < 0) continue;
+    let vi = colonIdx + 1;
+    while (vi < s.length && ' \t\r\n'.includes(s[vi])) vi++;
+    const opener = s[vi];
+    if (opener !== '[' && opener !== '"') continue;
+    let depth = 0, inStr = false, end = -1;
+    for (let i = vi; i < s.length; i++) {
+      const c = s[i];
+      if (opener === '[') {
+        if (c === '\\' && inStr) { i++; continue; }
+        if (c === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (c === '[') depth++;
+        else if (c === ']') { depth--; if (depth === 0) { end = i; break; } }
+      } else {
+        if (i === vi) continue;
+        if (c === '\\') { i++; continue; }
+        if (c === '"') { end = i; break; }
+      }
+    }
+    if (end < 0) continue;
+    try { result[p] = JSON.parse(s.slice(vi, end + 1)); } catch {}
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
 function stripCodeFences(s: string) {
   return s
     .replace(/^\s*```(?:json)?\s*/i, "")
@@ -176,6 +208,9 @@ Important:
 - For linkedin/x/instagram/threads: value must be an array of 3 strings.
 - For blog: value must be a single markdown string.
 - No code fences. No extra keys.
+- Each array element must be one complete, self-contained post. Join all paragraphs within a single string using \\n\\n as line breaks. The section numbers in the rules above are writing guidelines, not array indices — never split one post across multiple array elements.
+- You must include every requested platform as a key. Do not omit any.
+- Example shape (abbreviated): {"linkedin":["Full post 1...","Full post 2...","Full post 3..."],"x":["Tweet 1","Tweet 2","Tweet 3"]}
 `.trim();
 
     const resp = await callChatCompletions(
@@ -184,7 +219,6 @@ Important:
 
     if (!resp.ok) {
       const errBody = await resp.text().catch(() => "(unreadable)");
-      console.error(`[generate] LLM error ${resp.status}:`, errBody);
       return NextResponse.json(
         { ok: false, error: friendlyLlmError(resp.status) },
         { status: 502 }
@@ -196,13 +230,18 @@ Important:
 
     const cleaned = stripCodeFences(outputText);
 
+    let parsed: unknown;
     try {
-      const parsed = JSON.parse(cleaned);
-      const posts = Object.fromEntries(platforms.map((p) => [p, parsed[p]]).filter(([, v]) => v !== undefined));
-      return NextResponse.json({ ok: true, posts });
+      parsed = JSON.parse(cleaned);
     } catch {
-      return NextResponse.json({ ok: false, error: "The AI returned a malformed response. Please try again." }, { status: 502 });
+      const extracted = extractPlatformValues(cleaned, platforms);
+      if (extracted) parsed = extracted;
+      if (!parsed) {
+        return NextResponse.json({ ok: false, error: "The AI returned a malformed response. Please try again." }, { status: 502 });
+      }
     }
+    const posts = Object.fromEntries(platforms.map((p) => [p, (parsed as Record<string, unknown>)[p]]).filter(([, v]) => v !== undefined));
+    return NextResponse.json({ ok: true, posts });
   } catch (error: unknown) {
     if (isRateLimitError(error)) {
       return NextResponse.json(

@@ -357,3 +357,38 @@ v1.0 is now scoped to:
 - The deferred features are additive UX improvements, not core functionality
 - Blog copy-paste satisfies the export need for v1.0 without file I/O complexity
 - A tighter scope enables a higher-quality, faster v1.0 release
+
+---
+
+## 2026-03-30 — Generate endpoint uses two-stage JSON parsing with fallback extraction (#70)
+
+### Context
+GPT-5.4-mini produces structurally invalid JSON for multi-platform generation
+requests — particularly for LinkedIn. The model splits LinkedIn variants into
+multiple anonymous arrays instead of a single keyed array, breaking the outer
+JSON object structure. `JSON.parse` fails, and all platform content is lost.
+
+X generation succeeds because its shorter output rarely triggers the structural
+issue. LinkedIn's complex prompt (6-section structure for long tier, mandatory
+hashtags) causes the model to emit extra array literals without property keys.
+
+### Decision
+The `/api/generate` endpoint now uses two-stage JSON parsing:
+
+1. **Primary:** `JSON.parse(cleaned)` — fast path for well-formed responses.
+2. **Fallback:** `extractPlatformValues(cleaned, platforms)` — independently
+   locates each platform key in the raw string, finds its value (array or
+   string), and parses each value in isolation. This recovers all platforms
+   even when the outer JSON structure is broken.
+
+The prompt's Important section was also clarified:
+- Each array element must be one complete, self-contained post (not split
+  across multiple elements).
+- All requested platforms must appear as keys.
+- An abbreviated example shape is provided to anchor the model's output format.
+
+### Rationale
+- LLM output is non-deterministic; defensive parsing is necessary.
+- The fallback extracts valid platform content that would otherwise be lost.
+- Prompt clarifications reduce (but cannot eliminate) malformed output.
+- The friendly error path is preserved for truly unrecoverable responses.
