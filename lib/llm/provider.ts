@@ -99,9 +99,8 @@ export async function callChatCompletions(
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (isGoogleAI) {
     headers["x-goog-api-key"] = apiKey;
-  } else {
-    headers["Authorization"] = `Bearer ${apiKey}`;
   }
+  headers["Authorization"] = `Bearer ${apiKey}`;
 
   const init: RequestInit = {
     method: "POST",
@@ -114,7 +113,12 @@ export async function callChatCompletions(
     try {
       console.log(`[llm] POST ${url} model=${model}`);
       const resp = await fetch(url, init);
-      if (!isTransientStatus(resp.status) || attempt === MAX_ATTEMPTS - 1) {
+      if (!resp.ok && (!isTransientStatus(resp.status) || attempt === MAX_ATTEMPTS - 1)) {
+        const errBody = await resp.clone().text().catch(() => "(unreadable)");
+        console.error(`[llm] error ${resp.status}: ${errBody}`);
+        return resp;
+      }
+      if (!isTransientStatus(resp.status)) {
         return resp;
       }
       await sleep(retryDelayMs(resp, attempt + 1));
